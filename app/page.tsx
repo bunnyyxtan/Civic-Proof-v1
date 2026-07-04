@@ -417,9 +417,9 @@ export default function CivicProofApp() {
     if (text !== "Location not detected") return text;
     
     const myCases = cases.filter(c => c.corroborations.some(corr => corr.contributorName === "You (Original Reporter)"));
-    const latestCaseWithLocation = myCases.find(c => c.locationConfirmedByUser && (c.locationShortLabel || c.city || c.gps.address));
+    const latestCaseWithLocation = myCases.find(c => c.locationConfirmedByUser && (c.locationShortLabel || c.city || c.gps?.address));
     if (latestCaseWithLocation) {
-      return latestCaseWithLocation.locationShortLabel || latestCaseWithLocation.city || latestCaseWithLocation.gps.address;
+      return latestCaseWithLocation.locationShortLabel || latestCaseWithLocation.city || latestCaseWithLocation.gps?.address;
     }
     return "Location not detected";
   };
@@ -1229,7 +1229,7 @@ export default function CivicProofApp() {
     triggerToast("Generating formal complaint packet...", "tally");
     setIsStreamingComplaint(true);
     
-    const detailedContext = `${caseItem.description}. Category: ${caseItem.category}. Severity Score: ${caseItem.harmScore}/100. Location: ${caseItem.locationShortLabel || caseItem.formattedAddress || caseItem.gps.address || 'Unknown'}. Corroborations: ${caseItem.corroborations?.length || 0}.`;
+    const detailedContext = `${caseItem.description}. Category: ${caseItem.category}. Severity Score: ${caseItem.harmScore}/100. Location: ${caseItem.locationShortLabel || caseItem.formattedAddress || caseItem.gps?.address || 'Unknown'}. Corroborations: ${caseItem.corroborations?.length || 0}.`;
 
     // 1. Immediately show drafting placeholder
     setCases(prev => prev.map(c => c.id === caseItem.id ? {
@@ -1261,7 +1261,7 @@ export default function CivicProofApp() {
           title: caseItem.title,
           category: caseItem.category,
           department: caseItem.department,
-          gpsString: `${caseItem.gps.latitude}, ${caseItem.gps.longitude} (${caseItem.locationShortLabel || caseItem.formattedAddress || caseItem.gps.address || ''})`,
+          gpsString: `${caseItem.gps?.latitude}, ${caseItem.gps?.longitude} (${caseItem.locationShortLabel || caseItem.formattedAddress || caseItem.gps?.address || ''})`,
           elapsedDays: checkSilenceClockBreach(caseItem).elapsedDays,
           analysisText: detailedContext
         })
@@ -1309,7 +1309,7 @@ export default function CivicProofApp() {
           title: caseItem.title,
           category: caseItem.category,
           department: caseItem.department,
-          gpsString: `${caseItem.gps.latitude}, ${caseItem.gps.longitude} (${caseItem.locationShortLabel || caseItem.formattedAddress || caseItem.gps.address || ''})`,
+          gpsString: `${caseItem.gps?.latitude}, ${caseItem.gps?.longitude} (${caseItem.locationShortLabel || caseItem.formattedAddress || caseItem.gps?.address || ''})`,
           elapsedDays: checkSilenceClockBreach(caseItem).elapsedDays,
           analysisText: detailedContext
         })
@@ -1351,7 +1351,7 @@ export default function CivicProofApp() {
     triggerToast("Compiling administrative neglect escalation packet...", "breach");
     setIsStreamingEscalation(true);
     
-    const detailedContext = `${caseItem.description}. Category: ${caseItem.category}. Severity Score: ${caseItem.harmScore}/100. Location: ${caseItem.locationShortLabel || caseItem.formattedAddress || caseItem.gps.address || 'Unknown'}. Corroborations: ${caseItem.corroborations?.length || 0}.`;
+    const detailedContext = `${caseItem.description}. Category: ${caseItem.category}. Severity Score: ${caseItem.harmScore}/100. Location: ${caseItem.locationShortLabel || caseItem.formattedAddress || caseItem.gps?.address || 'Unknown'}. Corroborations: ${caseItem.corroborations?.length || 0}.`;
 
     // 1. Immediately show drafting placeholder
     setCases(prev => prev.map(c => c.id === caseItem.id ? {
@@ -1383,7 +1383,7 @@ export default function CivicProofApp() {
           title: caseItem.title,
           category: caseItem.category,
           department: caseItem.department,
-          gpsString: `${caseItem.gps.latitude}, ${caseItem.gps.longitude} (${caseItem.locationShortLabel || caseItem.formattedAddress || caseItem.gps.address || ''})`,
+          gpsString: `${caseItem.gps?.latitude}, ${caseItem.gps?.longitude} (${caseItem.locationShortLabel || caseItem.formattedAddress || caseItem.gps?.address || ''})`,
           elapsedDays: checkSilenceClockBreach(caseItem).elapsedDays,
           analysisText: detailedContext,
           corroborationCount: caseItem.corroborations.length
@@ -1455,7 +1455,7 @@ export default function CivicProofApp() {
           title: caseItem.title,
           category: caseItem.category,
           department: caseItem.department,
-          gpsString: `${caseItem.gps.latitude}, ${caseItem.gps.longitude} (${caseItem.locationShortLabel || caseItem.formattedAddress || caseItem.gps.address || ''})`,
+          gpsString: `${caseItem.gps?.latitude}, ${caseItem.gps?.longitude} (${caseItem.locationShortLabel || caseItem.formattedAddress || caseItem.gps?.address || ''})`,
           elapsedDays: checkSilenceClockBreach(caseItem).elapsedDays,
           analysisText: detailedContext,
           corroborationCount: caseItem.corroborations.length
@@ -1798,7 +1798,7 @@ export default function CivicProofApp() {
 
                   {/* Geotag marker overlay */}
                   <div className="absolute bottom-2 left-2 bg-ink/80 text-paper font-mono text-[10px] px-2 py-1 rounded-sm backdrop-blur-sm">
-                    LAT: {selectedCase.gps.latitude?.toFixed(4) ?? 'N/A'} LON: {selectedCase.gps.longitude?.toFixed(4) ?? 'N/A'}
+                    LAT: {selectedCase.gps?.latitude?.toFixed(4) ?? 'N/A'} LON: {selectedCase.gps?.longitude?.toFixed(4) ?? 'N/A'}
                   </div>
                 </div>
 
@@ -1931,7 +1931,7 @@ export default function CivicProofApp() {
                     <div>
                       <span className="text-chalk block">GPS LOCATOR</span>
                       <span className="font-semibold text-ink">
-                        {selectedCase.gps.latitude?.toFixed(5) ?? 'N/A'}N, {selectedCase.gps.longitude?.toFixed(5) ?? 'N/A'}E
+                        {selectedCase.gps?.latitude?.toFixed(5) ?? 'N/A'}N, {selectedCase.gps?.longitude?.toFixed(5) ?? 'N/A'}E
                       </span>
                     </div>
                     <div>
@@ -2369,7 +2369,7 @@ export default function CivicProofApp() {
                         </div>
                         <div className="flex-1 font-mono text-[10px] space-y-1">
                           <div className="bg-ink/5 p-1.5 border border-ink/20">
-                            <strong>Location:</strong> {selectedCase.gps.latitude?.toFixed(5) ?? 'N/A'}, {selectedCase.gps.longitude?.toFixed(5) ?? 'N/A'}
+                            <strong>Location:</strong> {selectedCase.gps?.latitude?.toFixed(5) ?? 'N/A'}, {selectedCase.gps?.longitude?.toFixed(5) ?? 'N/A'}
                           </div>
                           <div className="bg-ink/5 p-1.5 border border-ink/20">
                             <strong>Reported:</strong> {new Date(selectedCase.filedAt).toLocaleString()}
@@ -2756,12 +2756,12 @@ export default function CivicProofApp() {
                 {cases.slice(0, 4).map((c, i) => {
                   let x = 200;
                   let y = 150;
-                  if (c.gps.latitude !== null && c.gps.longitude !== null) {
+                  if (c.gps?.latitude != null && c.gps?.longitude != null) {
                     const centerLat = 12.9716;
                     const centerLng = 77.5946;
                     const scale = 3000;
-                    const dx = (c.gps.longitude - centerLng) * scale;
-                    const dy = (centerLat - c.gps.latitude) * scale;
+                    const dx = (c.gps?.longitude - centerLng) * scale;
+                    const dy = (centerLat - c.gps?.latitude) * scale;
                     x = Math.max(20, Math.min(1000, 400 + dx));
                     y = Math.max(20, Math.min(300, 160 + dy));
                   } else {
@@ -2867,7 +2867,7 @@ export default function CivicProofApp() {
               {/* Scrollable List container */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {cases
-                  .filter(c => c.gps.latitude !== null && c.gps.longitude !== null)
+                  .filter(c => c.gps?.latitude != null && c.gps?.longitude != null)
                   .filter(c => {
                     if (mapFilter === 'active') return c.status !== 'RESOLVED';
                     if (mapFilter === 'resolved') return c.status === 'RESOLVED';
@@ -2933,12 +2933,12 @@ export default function CivicProofApp() {
                     );
                   })}
 
-                {cases.filter(c => c.gps.latitude === null || c.gps.longitude === null).length > 0 && (
+                {cases.filter(c => c.gps?.latitude == null || c.gps?.longitude == null).length > 0 && (
                   <div className="mt-8 space-y-4">
                     <h5 className="font-sans text-xs font-bold uppercase text-chalk tracking-wider border-b border-ink/20 pb-2">
                       Cases needing location confirmation
                     </h5>
-                    {cases.filter(c => c.gps.latitude === null || c.gps.longitude === null).map(item => (
+                    {cases.filter(c => c.gps?.latitude == null || c.gps?.longitude == null).map(item => (
                       <div 
                         key={`unlocated-${item.id}`}
                         onClick={() => {
