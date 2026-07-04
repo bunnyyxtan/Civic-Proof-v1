@@ -1,13 +1,13 @@
 # CivicProof AI Contract Specification
 
-This document details the formal interfaces, schemas, and contract rules binding the CivicProof agentic workflow and the Gemini visual-cognitive models.
+This document details the formal interfaces, schemas, and contract rules binding the CivicProof agentic workflow and the BTL Runtime models.
 
 ## 1. Scope and Boundaries
 Deterministic application layers own critical decision flows. The AI operates exclusively as a cognitive analysis and documentation generation proxy.
 
-| Dimension | AI Ownership (Gemini) | Deterministic Application Ownership |
+| Dimension | AI Ownership (BTL Runtime) | Deterministic Application Ownership |
 | :--- | :--- | :--- |
-| **Case ID generation** | ❌ Forbidden | ✅ Automated Cryptographic Generation |
+| **Case ID generation** | ❌ Forbidden | ✅ Deterministic server-side generation |
 | **Issue Category** | ✅ Recommended Classification | ✅ Standard Mapping Matrix Verification |
 | **Harm Score** | ❌ Forbidden | ✅ Calculated mathematical sum |
 | **Department Routing** | ✅ Suggested Entity | ✅ Standard Dispatch Map Matrix |
@@ -69,5 +69,5 @@ export const ResolutionVerificationSchema = z.object({
 
 ## 3. Prompts & Security Rules
 * **No Prose, Pure JSON:** All generative prompts instruct models to omit markdown fences and return purely parseable JSON strings.
-* **API Key Safety:** Keys are retrieved strictly server-side using `process.env.GEMINI_API_KEY`. No client-side leaking is permitted.
-* **Graceful Failure:** Any JSON, parsing, or API failure triggers a corresponding local fallback model inside `src/lib/ai/mockAi.ts`.
+* **API Key Safety:** Keys are retrieved strictly server-side using `process.env.GATEWAY_API_KEY`. No client-side leaking is permitted.
+* **Graceful Failure:** Any JSON, parsing, or API failure triggers a corresponding local fallback model inside `src/lib/ai/aiAdapters.ts`.

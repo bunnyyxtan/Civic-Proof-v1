@@ -19,10 +19,9 @@ This checklist documents the testing steps, regression verifications, and system
 
 ## 🔌 3. Core API Endpoint Tests
 * [ ] **Case Feed (`GET /api/cases`)**: Verify that calling this route returns an `ok: true` state and an array of existing cases.
-* [ ] **Persistence Health (`GET /api/demo/persistence-health`)**: Run a request to verify the service status shows connected or gracefully routes to `local_storage_active` when keys are unconfigured.
-* [ ] **DB Hydration (`POST /api/demo/seed-cases`)**: Confirm database seed routes populate standard items successfully.
-* [ ] **Engine Smoke Suite (`GET /api/demo/engine-smoke`)**: Verify the response output has `success: true` and all assertions under the `validation` schema pass.
-* [ ] **AI Model Check (`GET /api/demo/ai-health`)**: Confirm the endpoint detects whether Gemini is loaded and displays the exact model configuration in use.
+* [ ] **Operations Health (`GET /api/ops/health`)**: Run a request to verify the service status shows connected or gracefully routes to `local_storage_active` when keys are unconfigured.
+* [ ] **Readiness Status (`GET /api/ops/readiness`)**: Verify the response output has `overallOk: true` and correctly identifies configured BTL AI models and Supabase.
+* [ ] **Runtime Diagnostic (`GET /api/ops/runtime`)**: Confirm the endpoint successfully reports node versions and build environment parameters.
 
 ---
 
@@ -30,21 +29,18 @@ This checklist documents the testing steps, regression verifications, and system
 * [ ] **Demo Landing `/demo`**: Access `/demo` and confirm "Watch one report become civic proof" displays.
 * [ ] **Interactive Progress Stepper**: Navigate sequentially from Step 1 through Step 10. Check if UI elements change (Phone Mockup, Extraction Grid, Map Circle, Recalculated Harm Scores, BWSSB letters, Silence clocks).
 * [ ] **Live Simulation Mode**: Click "Run live demo" to ensure automated autoplay advances correctly.
-* [ ] **Interactive Trigger Tests**:
-  * [ ] Click "Re-Seed Database" to trigger live data hydration.
-  * [ ] Click "Run Engine Smoke Test" to test mathematical logic live in front of judges.
 
 ---
 
-## 🗄️ 5. Firestore Persistence Tests
-* [ ] **Credentials Presence**: Verify environment detects standard Firestore project variables.
-* [ ] **Graceful Fallback**: Unconfigure Firestore settings, restart the server, and confirm that the client falls back to browser memory storage without throwing fatal white screens of death.
+## 🗄️ 5. Supabase Persistence Tests
+* [ ] **Credentials Presence**: Verify environment detects standard Supabase project variables.
+* [ ] **Graceful Fallback**: Unconfigure Supabase settings, restart the server, and confirm that the client falls back to browser memory storage without throwing fatal white screens of death.
 
 ---
 
-## 🤖 6. Gemini Integration & Fallbacks
-* [ ] **Active API Verification**: Submit a voice/text report on the main dashboard with an active `GEMINI_API_KEY` to ensure the NLP extraction works and populates timeline structures.
-* [ ] **Fallback Ingestion**: Remove the Gemini key, and confirm that the local procedural fallback takes over, allowing full usage with heuristic categorization.
+## 🤖 6. BTL Gateway Integration & Fallbacks
+* [ ] **Active API Verification**: Submit a text/photo report on the main dashboard with an active `GATEWAY_API_KEY` to ensure the NLP extraction works and populates timeline structures via BTL models.
+* [ ] **Fallback Ingestion**: Remove the GATEWAY_API_KEY, and confirm that the local procedural fallback takes over, allowing full usage with deterministic categorization.
 
 ---
 

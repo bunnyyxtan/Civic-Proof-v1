@@ -1,5 +1,5 @@
 # CivicProof — Submission Document Draft
-*Vibe2Ship Hackathon — Coding Ninjas x Google for Developers*
+*BTL Runtime Hackathon*
 
 ---
 
@@ -37,9 +37,9 @@
 
 ---
 
-## ☁️ 5. Google Technologies Utilized
-* **Google Gemini API**: Accessed server-side via the `@google/genai` SDK to run zero-shot structured JSON extraction on transcript strings, analyze visual content, and draft professional formal legal appeal packets.
-* **Google Cloud Firestore**: Provides durable, multi-user real-time state synchronization, enabling case updates, corroborated timeline additions, and public tracking of active/breached/resolved dockets.
+## ☁️ 5. BTL Runtime Utilized
+* **BTL Runtime Gateway**: Provides OpenAI-compatible endpoints for all AI operations. We use `deepseek-v4-flash` for zero-shot structured JSON extraction from transcripts and `gpt-4o-mini` for forensic photographic analysis and professional legal appeal drafting. All calls execute securely on the server-side.
+* **Supabase**: Provides durable, multi-user real-time state synchronization, enabling case updates, corroborated timeline additions, and public tracking of active/breached/resolved dockets.
 
 ---
 
@@ -48,7 +48,7 @@
 [Citizen Input] -> [Voice / Photo Upload]
                          |
                          v
-                [Gemini API Parser] -> Extracts structured metadata, risks, landmarks
+                [BTL Runtime Gateway] -> Extracts structured metadata, risks, landmarks
                          |
                          v
           [Geomap Proximity Lookup (450m)]
@@ -63,7 +63,7 @@
               [Smart Routing Engine] -> Mapped to BWSSB, BESCOM, BBMP, etc.
                          |
                          v
-             [SLA Silence Clock (7 Days)] -> If breached, auto-compiles escalation letter
+             [SLA Silence Clock (Per-Category)] -> If breached, auto-compiles escalation letter
                          |
                          v
              [Photographic Repair Audit] -> Verified Closure -> RESOLVED
@@ -100,7 +100,7 @@ CivicProof shifts the civic paradigm from **individual complaints** (vulnerable 
 5. **Score Spike**: High-vulnerability school area and additional witnesses escalate Harm Score to `89` (Critical).
 6. **Smart Route**: Assigned to BWSSB division.
 7. **Letter Drafted**: Formal public grievance compiled detailing all 3 witness statements.
-8. **Silence Clock Breach**: Time elapsed goes beyond 7 days SLA.
+8. **Silence Clock Breach**: Time elapsed goes beyond 2 days SLA for water leakage.
 9. **Senior Escalation**: System compiles an SLA negligence report addressed to the BBMP Commissioner.
 10. **Resolution Proof**: Construction workers cover the drain. A citizen uploads a verification photo, which is audited and marked "VERIFIED RESOLUTION".
 

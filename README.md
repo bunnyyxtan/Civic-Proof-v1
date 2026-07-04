@@ -28,10 +28,9 @@ CivicProof acts as an agentic intermediary between the community and municipal d
 
 ## 💻 Tech Stack
 
-* **Next.js 15+ (App Router)**: High-performance, production-ready React framework.
+* **Next.js 14.2.15 (App Router)**: High-performance, production-ready React framework.
 * **Supabase**: Provides durable, multi-user real-time persistence of all active cases, timelines, and corroboration ledgers.
-* **BTL Gateway API**: Connects to advanced AI models (deepseek-v4-flash, gpt-4o-mini) for analyzing unstructured citizen reports and composing formal legal escalation briefs.
-* **Google Gemini API**: Utilized for voice transcription.
+* **BTL Runtime Gateway**: All AI (text and vision) runs entirely on the BTL Gateway via OpenAI-compatible endpoints (`deepseek-v4-flash` for text, `gpt-4o-mini` for vision).
 * **Tailwind CSS v4**: Adaptive, high-contrast visual interface styled with Inter and JetBrains Mono typography.
 
 ---
@@ -50,15 +49,23 @@ npm install
 ### 2. Configure Environment Variables
 Create a `.env.local` file at the root:
 ```env
-# Gemini API Key for Voice Transcription
-GEMINI_API_KEY=your_gemini_api_key
-
-# BTL API Key for AI Analysis & Generation
-BTL_API_KEY=your_btl_api_key
+# BTL Runtime Gateway configuration
+GATEWAY_API_KEY=
+BTL_BASE_URL=https://api.badtheorylabs.com/v1
+BTL_TEXT_MODEL=deepseek-v4-flash
+BTL_VISION_MODEL=gpt-4o-mini
 
 # Supabase Credentials for Persistence
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+SUPABASE_ENABLED=true
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+
+# Scheduled Jobs Configuration
+CRON_SECRET=
+
+# Google Maps Platform configuration
+GOOGLE_MAPS_API_KEY=
 ```
 
 ### 3. Build & Compile

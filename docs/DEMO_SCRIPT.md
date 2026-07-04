@@ -19,14 +19,14 @@
 
 ## 3. The Live Demo Walkthrough
 ### Moment A: Submission and AI Cognitive Capture
-* **Action:** Citizen snaps a photo of an open drain near a school and speaks: *"Kids are walking around this open sewer main."*
+* **Action:** Citizen snaps a photo of an open drain near a school and adds a note: *"Kids are walking around this open sewer main."*
 * **Visual:** Polaroid develops. The typewriter sequential output reveals:
   * **EV-ANALYSIS:** Verified by Cognitive Proof.
   * **CATEGORY:** WATER LEAKAGE & OVERFLOW.
   * **ROUTED:** BWSSB Stormwater cell.
   * **HARM SCORE:** 88/100 points (Critical).
 * **Speaker:**
-> *"The moment evidence is submitted, Gemini parses visual details and transcribes the citizen's voice. Deterministic rules calculate a public Harm Score—factoring in category risks and children's school proximity. It is routed instantly to the right desk."*
+> *"The moment evidence is submitted, the BTL Runtime vision model parses visual details and extracts structured metadata. Deterministic rules calculate a public Harm Score—factoring in category risks and children's school proximity. It is routed instantly to the right desk."*
 
 ### Moment B: The Duplicate-to-Corroboration Loop
 * **Action:** A second resident reports the same open drain.
@@ -44,7 +44,7 @@
 * **Action:** User uploads a post-repair photo and notes: *"They filled it up and sealed the concrete."*
 * **Visual:** Forensic audit analyzes post-repair picture. Visual inspection returns: **REPAIR VERIFIED. STATUS: CLOSED & SEALED.**
 * **Speaker:**
-> *"When work is claimed, we do not take their word for it. The citizen uploads visual proof of repair. Gemini compares before and after photographs to forensically audit the work, closing the case file only when safe."*
+> *"When work is claimed, we do not take their word for it. The citizen uploads visual proof of repair. The BTL Runtime vision model compares before and after photographs to forensically audit the work, closing the case file only when safe."*
 
 ---
 

@@ -13,7 +13,7 @@ This document describes how CivicProof orchestrates the 10-step agentic core loo
  1. Geotag & Photo Intake
          │
          ▼
- 2. AI Evidence Extraction (Gemini)
+ 2. AI Evidence Extraction (BTL Runtime)
          │
          ▼
  3. Proximity Sweep (Deduplication) ──(Similarity >= 0.72)──► [Corroboration Link]
