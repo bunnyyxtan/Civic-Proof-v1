@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { CivicCase, GPSCoordinates, CaseStatus, CorroborationType, checkSilenceClockBreach, getGPSDistanceInMeters, findMatchingNearbyCase, routeToDepartment, calculateHarmScore } from '@/src/lib/civic/engine';
 import { loadCases, saveCases, mapIssueToCase } from '@/src/lib/store';
+import { getAuthority, buildGmailComposeUrl, getPortalSteps, type CivicCategory } from "@/src/lib/civic/authorityDirectory";
 import { BrandWordmark } from '@/src/components/BrandWordmark';
 import { useCitizenAuth } from '@/src/lib/auth/useCitizenAuth';
 
@@ -444,6 +445,7 @@ export default function CivicProofApp() {
   const triggerSound = (type: 'thup' | 'tick' | 'ding') => playSound(type, !soundEnabled);
 
   const [isDesktopLayout, setIsDesktopLayout] = useState(false);
+  const [handoff, setHandoff] = useState<null | { mode: "email" | "portal"; steps: string[]; dept: string }>(null);
   useEffect(() => {
     const checkDesktop = () => setIsDesktopLayout(window.innerWidth >= 768);
     checkDesktop();
@@ -2078,23 +2080,81 @@ export default function CivicProofApp() {
                         </p>
                       )}
 
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={() => {
-                            navigator.clipboard.writeText(selectedCase.complaintPacket?.body || "");
-                            triggerToast("Complaint packet copied to clipboard.", "tally");
-                          }}
-                          className="flex-1 bg-paper border border-ink py-1 text-[10px] font-sans font-semibold hover:bg-ink/[0.04]"
-                        >
-                          Copy Petition
-                        </button>
-                        <a 
-                          href={`mailto:grievances@municipal.gov.in?subject=Formal Grievance ${selectedCase.id}&body=${encodeURIComponent(selectedCase.complaintPacket.body)}`}
-                          className="flex-1 bg-stamp text-paper text-center border border-ink py-1 text-[10px] font-sans font-semibold hover:bg-stamp/90"
-                        >
-                          Email Authority
-                        </a>
-                      </div>
+                      {(() => {
+                        const authority = getAuthority(
+                          selectedCase.category as CivicCategory,
+                          selectedCase.gps?.address || selectedCase.city || selectedCase.state || ""
+                        );
+                        const emailSubject = `Civic Complaint: ${selectedCase.title} [${selectedCase.id}]`;
+                        const emailBody = selectedCase.complaintPacket?.body || "";
+
+                        const copyPetition = async () => {
+                          try { await navigator.clipboard.writeText(`${emailBody}\n\nComplaint Reference: ${selectedCase.id}`); } catch {}
+                        };
+                        const handleEmailAuthority = async () => {
+                          await copyPetition();
+                          window.open(buildGmailComposeUrl(authority.email!, emailSubject, emailBody), "_blank", "noopener");
+                          setHandoff({ mode: "email", steps: [], dept: authority.departmentName });
+                        };
+                        const handleOpenPortal = async () => {
+                          await copyPetition();
+                          window.open(authority.portalUrl, "_blank", "noopener");
+                          setHandoff({ mode: "portal", steps: getPortalSteps(authority, selectedCase.id), dept: authority.departmentName });
+                        };
+
+                        return (
+                          <div className="space-y-3">
+                            <p className="text-sm text-ink/70 font-sans">
+                              Routed to: <span className="font-bold text-ink">{authority.departmentName}</span>
+                              {authority.level !== "city" && " (state/national grievance portal)"}
+                            </p>
+
+                            <div className="flex gap-2">
+                              {authority.email ? (
+                                <button
+                                  onClick={handleEmailAuthority}
+                                  className="flex-1 bg-stamp text-paper text-center border border-ink py-1 text-[10px] font-sans font-semibold hover:bg-stamp/90"
+                                >
+                                  Email Authority ({authority.email})
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={handleOpenPortal}
+                                  className="flex-1 bg-stamp text-paper text-center border border-ink py-1 text-[10px] font-sans font-semibold hover:bg-stamp/90"
+                                >
+                                  Open Complaint Portal
+                                </button>
+                              )}
+
+                              <button
+                                onClick={() => {
+                                  copyPetition();
+                                  triggerToast("Complaint packet copied to clipboard.", "tally");
+                                }}
+                                className="flex-1 bg-paper border border-ink py-1 text-[10px] font-sans font-semibold hover:bg-ink/[0.04]"
+                              >
+                                Copy Petition
+                              </button>
+                            </div>
+                            
+                            {/* Guided confirmation panel */}
+                            {handoff && (
+                              <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm space-y-2 mt-2">
+                                {handoff.mode === "email" ? (
+                                  <p className="text-ink">✅ Gmail compose opened for <b className="font-semibold">{handoff.dept}</b>. The petition is prefilled and also copied to your clipboard — review and hit <b className="font-semibold">Send</b>.</p>
+                                ) : (
+                                  <>
+                                    <p className="text-ink">📋 Petition + reference <b className="font-semibold">{selectedCase.id}</b> copied. <b className="font-semibold">{handoff.dept}</b> portal opened in a new tab. Follow these steps:</p>
+                                    <ol className="list-decimal list-inside space-y-1 text-ink/80 text-xs">
+                                      {handoff.steps.map((s, i) => <li key={i}>{s}</li>)}
+                                    </ol>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
 
