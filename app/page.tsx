@@ -447,6 +447,21 @@ export default function CivicProofApp() {
 
   const [isDesktopLayout, setIsDesktopLayout] = useState(false);
   const [handoff, setHandoff] = useState<null | { mode: "email" | "portal"; steps: string[]; dept: string }>(null);
+  // Clear any handoff guide when switching to a different case so a stale
+  // portal/email guide from a previous case never leaks onto another one.
+  useEffect(() => {
+    setHandoff(null);
+  }, [selectedCase?.id]);
+
+  const [runtimeInfo, setRuntimeInfo] = useState<{ provider: string; textModel: string; visionModel: string; voiceModel: string; gatewayHost: string } | null>(null);
+  useEffect(() => {
+    fetch("/api/ops/runtime")
+      .then(r => r.json())
+      .then(res => {
+        if (res.ok && res.data) setRuntimeInfo(res.data);
+      })
+      .catch(() => {});
+  }, []);
   useEffect(() => {
     const checkDesktop = () => setIsDesktopLayout(window.innerWidth >= 768);
     checkDesktop();
@@ -1622,6 +1637,20 @@ export default function CivicProofApp() {
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
             </div>
+            {runtimeInfo && (
+              <div 
+                className="inline-flex items-center gap-1.5 px-2 py-1 bg-tally/[0.08] border border-tally/30 rounded-sm mt-2 stamp-shadow cursor-default"
+                title={`${runtimeInfo.provider}\nText: ${runtimeInfo.textModel}\nVision: ${runtimeInfo.visionModel}\nVoice: ${runtimeInfo.voiceModel}`}
+              >
+                <span className="relative flex h-1.5 w-1.5 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tally opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-tally"></span>
+                </span>
+                <span className="font-sans text-[9px] font-bold text-tally uppercase tracking-wider whitespace-nowrap">
+                  Powered by {runtimeInfo.provider}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Vertical navigation menu */}
@@ -2050,9 +2079,14 @@ export default function CivicProofApp() {
                     </button>
                   ) : (
                     <div className="border border-ink p-3 bg-ink/5 space-y-2 text-xs">
-                      <div className="flex justify-between items-center border-b border-ink/20 pb-1.5 font-bold">
-                        <div className="flex items-center gap-2">
+                      <div className="flex justify-between items-center border-b border-ink/20 pb-1.5 font-bold flex-wrap gap-2">
+                        <div className="flex items-center flex-wrap gap-2">
                           <span>COMPLAINT PETITION</span>
+                          {runtimeInfo && (
+                            <span className="flex items-center bg-ink/10 text-ink px-1.5 py-0.5 rounded-sm text-[9px] uppercase border border-ink/20 shadow-sm font-sans tracking-wider">
+                              {runtimeInfo.provider} · {runtimeInfo.textModel}
+                            </span>
+                          )}
                           {isStreamingComplaint && (
                             <span className="flex items-center gap-1 bg-tally/10 text-tally px-1.5 py-0.5 rounded text-[9px] uppercase border border-tally/20 shadow-sm animate-pulse">
                               <span className="w-1.5 h-1.5 bg-tally rounded-full"></span>
