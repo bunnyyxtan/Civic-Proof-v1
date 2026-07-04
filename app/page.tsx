@@ -290,6 +290,7 @@ export default function CivicProofApp() {
 
   const handleLocationNameChange = (val: string) => {
     setLocationName(val);
+    setLocationConfirmed(false);
     
     if (val.trim().length < 3) {
       setPlaceSuggestions([]);
@@ -401,9 +402,9 @@ export default function CivicProofApp() {
 
   const getLocationText = () => {
     if (locationConfirmed && locationName) return locationName;
-    if (locationName) return locationName;
     if (locationShortLabel) return locationShortLabel;
     if (city) return city;
+    if (detectedLocation?.address) return detectedLocation.address;
     if (detectedLocation) return "LOCATION DETECTED";
     return "Location not detected";
   };
