@@ -142,14 +142,7 @@ export async function POST(req: NextRequest) {
       status: "FILED",
       harmScore: score,
       harmScoreBreakdown: breakdown,
-      corroborations: [
-        {
-          id: `CORR-01-${Date.now()}`,
-          filedAt: new Date().toISOString(),
-          type: "angle",
-          contributorName: "You (Original Reporter)",
-        }
-      ],
+      corroborations: [],
       timeline: [
         {
           id: `EV-01-${Date.now()}`,

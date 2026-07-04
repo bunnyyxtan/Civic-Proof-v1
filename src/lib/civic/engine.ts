@@ -19,6 +19,7 @@ export interface Corroboration {
   text?: string;
   type: CorroborationType;
   contributorName: string;
+  contributorUid?: string;
   additionalPhotoUrl?: string;
 }
 
@@ -105,6 +106,7 @@ export interface CivicCase {
   resolutionReasoning: string | null;
   resolvedAt: string | null;
   authorityLastSeenAt: string | null;
+  createdByUid?: string;
 }
 
 // 1. Calculate Haversine distance in meters

@@ -124,6 +124,8 @@ const EmptyStatePanel = ({
   );
 };
 
+const supporterCount = (c: CivicCase) => 1 + new Set(c.corroborations.filter(x => x.contributorUid && x.contributorUid !== c.createdByUid).map(x => x.contributorUid)).size;
+
 export default function CivicProofApp() {
   // Authentication & Identity
   const { citizen, idToken, loading: authLoading } = useCitizenAuth();
@@ -416,7 +418,7 @@ export default function CivicProofApp() {
     const text = getLocationText();
     if (text !== "Location not detected") return text;
     
-    const myCases = cases.filter(c => c.corroborations.some(corr => corr.contributorName === "You (Original Reporter)"));
+    const myCases = cases.filter(c => c.createdByUid === citizen.uid);
     const latestCaseWithLocation = myCases.find(c => c.locationConfirmedByUser && (c.locationShortLabel || c.city || c.gps?.address));
     if (latestCaseWithLocation) {
       return latestCaseWithLocation.locationShortLabel || latestCaseWithLocation.city || latestCaseWithLocation.gps?.address;
@@ -1575,7 +1577,7 @@ export default function CivicProofApp() {
   const activeCasesCount = cases.filter(c => c.status !== 'RESOLVED').length;
   const resolvedCasesCount = cases.filter(c => c.status === 'RESOLVED').length;
   const userContributionsCount = cases.filter(c => 
-    c.corroborations.some(corr => corr.contributorName === "You" || corr.contributorName === "You (Original Reporter)")
+    c.createdByUid === citizen.uid
   ).length;
 
   const recentTimelineEvents = cases
@@ -1832,12 +1834,12 @@ export default function CivicProofApp() {
                   <div className="flex justify-between items-center">
                     <span className="font-sans text-xs text-chalk font-semibold uppercase tracking-wider">Community weight</span>
                     <span className="font-mono text-xs text-tally font-bold">
-                      {selectedCase.corroborations.length} citizens verified
+                      {supporterCount(selectedCase)} citizens verified
                     </span>
                   </div>
                   
                   <div className="flex items-center gap-1.5 overflow-x-auto py-1">
-                    {selectedCase.corroborations.map((c, i) => (
+                    {selectedCase.corroborations.filter(co => co.contributorUid !== selectedCase.createdByUid).map((c, i) => (
                       <div 
                         key={c.id || i}
                         title={c.contributorName}
@@ -2284,7 +2286,7 @@ export default function CivicProofApp() {
                   <div className="flex gap-2">
                     <button 
                       onClick={() => {
-                        const content = `CIVIC CASE FILE: ${selectedCase.id}\nTitle: ${selectedCase.title}\nStatus: ${selectedCase.status}\nHarm Score: ${selectedCase.harmScore}/100\nEvidence: ${selectedCase.corroborations.length + 1} citizens verified.\nRoute: ${selectedCase.department}\nURL: ${window.location.href}`;
+                        const content = `CIVIC CASE FILE: ${selectedCase.id}\nTitle: ${selectedCase.title}\nStatus: ${selectedCase.status}\nHarm Score: ${selectedCase.harmScore}/100\nEvidence: ${supporterCount(selectedCase)} citizens verified.\nRoute: ${selectedCase.department}\nURL: ${window.location.href}`;
                         navigator.clipboard.writeText(content);
                         triggerToast("Packet summary copied to clipboard.", "tally");
                       }}
@@ -2360,7 +2362,7 @@ export default function CivicProofApp() {
                     <div>
                       <h2 className="font-display font-bold text-lg border-b border-ink/20 pb-1 mb-2 uppercase">Verified Evidence</h2>
                       <div className="mb-2 text-sm">
-                        <span className="font-bold">{selectedCase.corroborations.length + 1}</span> citizens have filed verified geo-tagged proof regarding this specific location.
+                        <span className="font-bold">{supporterCount(selectedCase)}</span> citizens have filed verified geo-tagged proof regarding this specific location.
                       </div>
                       <div className="flex gap-4">
                         <div className="w-1/3">
@@ -2872,7 +2874,7 @@ export default function CivicProofApp() {
                     if (mapFilter === 'active') return c.status !== 'RESOLVED';
                     if (mapFilter === 'resolved') return c.status === 'RESOLVED';
                     if (mapFilter === 'breached') return c.status === 'BREACHED';
-                    if (mapFilter === 'mine') return c.corroborations.some(co => co.contributorName === "You" || co.contributorName === "You (Original Reporter)");
+                    if (mapFilter === 'mine') return c.createdByUid === citizen.uid;
                     return true;
                   })
                   .map(item => {
@@ -2965,7 +2967,7 @@ export default function CivicProofApp() {
                   if (mapFilter === 'active') return c.status !== 'RESOLVED';
                   if (mapFilter === 'resolved') return c.status === 'RESOLVED';
                   if (mapFilter === 'breached') return c.status === 'BREACHED';
-                  if (mapFilter === 'mine') return c.corroborations.some(co => co.contributorName === "You" || co.contributorName === "You (Original Reporter)");
+                  if (mapFilter === 'mine') return c.createdByUid === citizen.uid;
                   return true;
                 }).length === 0 && (
                   <div className="text-center py-12 text-xs text-chalk">
@@ -3632,7 +3634,7 @@ export default function CivicProofApp() {
                       if (f === 'active') count = cases.filter(c => c.status !== 'RESOLVED').length;
                       else if (f === 'resolved') count = cases.filter(c => c.status === 'RESOLVED').length;
                       else if (f === 'breached') count = cases.filter(c => c.status === 'BREACHED').length;
-                      else if (f === 'mine') count = cases.filter(c => c.corroborations.some(co => co.contributorName === "You" || co.contributorName === "You (Original Reporter)")).length;
+                      else if (f === 'mine') count = cases.filter(c => c.createdByUid === citizen.uid).length;
 
                       return (
                         <button
@@ -3679,7 +3681,7 @@ export default function CivicProofApp() {
                       if (mapFilter === 'active') return item.status !== 'RESOLVED';
                       if (mapFilter === 'resolved') return item.status === 'RESOLVED';
                       if (mapFilter === 'breached') return item.status === 'BREACHED';
-                      if (mapFilter === 'mine') return item.corroborations.some(co => co.contributorName === "You" || co.contributorName === "You (Original Reporter)");
+                      if (mapFilter === 'mine') return item.createdByUid === citizen.uid;
                       return true;
                     })
                     .map(item => {
@@ -3748,7 +3750,7 @@ export default function CivicProofApp() {
                   if (mapFilter === 'active') return item.status !== 'RESOLVED';
                   if (mapFilter === 'resolved') return item.status === 'RESOLVED';
                   if (mapFilter === 'breached') return item.status === 'BREACHED';
-                  if (mapFilter === 'mine') return item.corroborations.some(co => co.contributorName === "You" || co.contributorName === "You (Original Reporter)");
+                  if (mapFilter === 'mine') return item.createdByUid === citizen.uid;
                   return true;
                 }).length === 0 && (
                   <EmptyStatePanel
@@ -3816,7 +3818,7 @@ export default function CivicProofApp() {
                   <div className="grid grid-cols-3 gap-2 border-t border-ink pt-3 text-center">
                     <div className="space-y-1">
                       <span className="font-display font-extrabold text-4xl text-stamp block leading-none">
-                        {cases.filter(c => c.corroborations.some(corr => corr.contributorName === "You (Original Reporter)")).length}
+                        {cases.filter(c => c.createdByUid === citizen.uid).length}
                       </span>
                       <span className="font-sans text-[10px] text-chalk uppercase font-bold block">Filed</span>
                     </div>
@@ -3872,7 +3874,7 @@ export default function CivicProofApp() {
 
                   <div className="border border-ink divide-y divide-ink bg-paper font-sans text-xs stamp-shadow">
                     {cases
-                      .filter(c => c.corroborations.some(corr => corr.contributorName.startsWith("You")))
+                      .filter(c => c.createdByUid === citizen.uid)
                       .map(c => (
                         <div 
                           key={c.id} 
@@ -3895,7 +3897,7 @@ export default function CivicProofApp() {
                         </div>
                       ))}
 
-                    {cases.filter(c => c.corroborations.some(corr => corr.contributorName.startsWith("You"))).length === 0 && (
+                    {cases.filter(c => c.createdByUid === citizen.uid).length === 0 && (
                       <div className="p-6 text-center text-chalk text-xs space-y-1">
                         <p className="font-bold text-ink">Your civic record is empty.</p>
                         <p className="text-[11px]">File or corroborate your first case to begin your contribution journal.</p>

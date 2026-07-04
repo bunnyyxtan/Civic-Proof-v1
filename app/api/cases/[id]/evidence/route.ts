@@ -6,7 +6,8 @@ import { verifyCitizenAuth } from "@/src/lib/auth/verifyAuth";
 const EvidenceSchema = z.object({
   imageUrl: z.string().url().optional(),
   caption: z.string().optional(),
-  type: z.literal("photo")
+  type: z.literal("photo"),
+  citizenUid: z.string().optional()
 });
 
 export async function POST(
@@ -29,37 +30,34 @@ export async function POST(
     }
 
     const auth = await verifyCitizenAuth(req);
-    const uid = auth?.uid || "anonymous";
-
-    const evidenceId = `EVD-${Date.now()}`;
-    const newEvidence = {
-      id: evidenceId,
-      type: parsed.type,
-      imageUrl: parsed.imageUrl,
-      caption: parsed.caption,
-      uploadedAt: new Date().toISOString(),
-      uploadedByUid: uid
-    };
+    const uid = auth?.uid || parsed.citizenUid || "anonymous";
 
     const timelineEvent = {
       id: `EV-EVD-${Date.now()}`,
       timestamp: new Date().toISOString(),
-      title: "Evidence Added",
+      label: "Evidence Added",
       description: `A citizen uploaded additional photo evidence to strengthen the case file.`,
       type: "evidence_added",
-      actorName: "Citizen Reporter"
+      actor: "citizen" as const
     };
 
-    const corroboration = {
-      id: `CORR-${Date.now()}`,
-      filedAt: new Date().toISOString(),
-      text: parsed.caption || "Verified same visual coordinates, still active.",
-      type: "angle",
-      contributorName: "Citizen Reporter",
-      additionalPhotoUrl: parsed.imageUrl
-    };
+    let updatedCase = currentCase;
 
-    const updatedCase = await repo.addCorroboration(id, corroboration as any);
+    if (uid === currentCase.createdByUid) {
+      updatedCase = await repo.appendTimelineEvent(id, timelineEvent);
+    } else {
+      const corroboration = {
+        id: `CORR-${Date.now()}`,
+        reportedAt: new Date().toISOString(),
+        citizenNote: parsed.caption || "Verified same visual coordinates, still active.",
+        contributorName: "Citizen Reporter",
+        contributorUid: uid,
+        imageDataUrl: parsed.imageUrl
+      };
+
+      await repo.appendTimelineEvent(id, timelineEvent);
+      updatedCase = await repo.addCorroboration(id, corroboration as any);
+    }
 
     return NextResponse.json({
       ok: true,

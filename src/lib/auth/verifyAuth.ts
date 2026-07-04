@@ -1,5 +1,6 @@
 // src/lib/auth/verifyAuth.ts
 import { NextRequest } from "next/server";
+import { getSupabaseAdmin } from "../supabase/supabaseClient";
 
 export interface CitizenIdentity {
   uid: string;
@@ -29,6 +30,19 @@ export async function verifyCitizenAuth(req: NextRequest): Promise<CitizenIdenti
         isAnonymous: true,
         verified: true,
       };
+    }
+
+    const admin = getSupabaseAdmin();
+    if (admin) {
+      const { data, error } = await admin.auth.getUser(token);
+      if (!error && data.user) {
+        return {
+          uid: data.user.id,
+          isAnonymous: data.user.is_anonymous ?? true,
+          email: data.user.email ?? undefined,
+          verified: true,
+        };
+      }
     }
 
     return null;

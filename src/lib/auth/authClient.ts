@@ -1,11 +1,5 @@
 // src/lib/auth/authClient.ts
-
-/**
- * Returns null as Firebase Anonymous Auth has been removed.
- */
-export async function ensureAnonymousUser(): Promise<any | null> {
-  return null;
-}
+import { supabaseBrowser } from "../supabase/supabaseBrowser";
 
 /**
  * Generates or retrieves a stable fallback citizen UID stored locally.
@@ -28,9 +22,26 @@ export function getLocalIdToken(): string {
   return `civic_local_for_${uid}`;
 }
 
+export async function ensureCitizenSession(): Promise<{ uid: string; token: string | null }> {
+  try {
+    let { data: { session } } = await supabaseBrowser.auth.getSession();
+    if (!session) {
+      const { data, error } = await supabaseBrowser.auth.signInAnonymously();
+      if (error) throw error;
+      session = data.session;
+    }
+    if (session?.user) return { uid: session.user.id, token: session.access_token };
+  } catch (e) {
+    console.warn("Supabase anon auth failed, using local identity:", e);
+  }
+  const uid = getOrCreateFallbackUid();
+  return { uid, token: getLocalIdToken() };
+}
+
 /**
  * Retrieves the security ID token for the authenticated user, which can be passed in Authorization headers.
  */
 export async function getCitizenIdToken(): Promise<string | null> {
-  return getLocalIdToken();
+  const session = await ensureCitizenSession();
+  return session.token;
 }

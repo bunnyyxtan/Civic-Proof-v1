@@ -4,7 +4,8 @@ import { getCaseRepository } from "@/src/lib/repositories/repositoryFactory";
 import { verifyCitizenAuth } from "@/src/lib/auth/verifyAuth";
 
 const ConfirmSchema = z.object({
-  note: z.string().optional()
+  note: z.string().optional(),
+  citizenUid: z.string().optional()
 });
 
 export async function POST(
@@ -27,34 +28,33 @@ export async function POST(
     }
 
     const auth = await verifyCitizenAuth(req);
-    const uid = auth?.uid || "anonymous";
-
-    const confirmId = `ACT-${Date.now()}`;
-    const newConfirmation = {
-      id: confirmId,
-      note: parsed.note || "Confirmed active today.",
-      confirmedAt: new Date().toISOString(),
-      confirmedByUid: uid
-    };
+    const uid = auth?.uid || parsed.citizenUid || "anonymous";
 
     const timelineEvent = {
       id: `EV-ACT-${Date.now()}`,
       timestamp: new Date().toISOString(),
-      title: "Active Status Confirmed",
+      label: "Active Status Confirmed",
       description: `A citizen verified that this issue is still present and unresolved as of today.`,
       type: "active_confirmation_added",
-      actorName: "Citizen Reporter"
+      actor: "citizen" as const
     };
 
-    const corroboration = {
-      id: `CORR-ACT-${Date.now()}`,
-      filedAt: new Date().toISOString(),
-      text: parsed.note || "Confirmed active today.",
-      type: "timestamp",
-      contributorName: "Citizen Reporter"
-    };
+    let updatedCase = currentCase;
 
-    const updatedCase = await repo.addCorroboration(id, corroboration as any);
+    if (uid === currentCase.createdByUid) {
+      updatedCase = await repo.appendTimelineEvent(id, timelineEvent);
+    } else {
+      const corroboration = {
+        id: `CORR-ACT-${Date.now()}`,
+        reportedAt: new Date().toISOString(),
+        citizenNote: parsed.note || "Confirmed active today.",
+        contributorUid: uid,
+        contributorName: "Verified Neighbor"
+      };
+
+      await repo.appendTimelineEvent(id, timelineEvent);
+      updatedCase = await repo.addCorroboration(id, corroboration as any);
+    }
 
     return NextResponse.json({
       ok: true,

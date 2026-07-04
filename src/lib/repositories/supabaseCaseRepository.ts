@@ -99,7 +99,10 @@ export class SupabaseCaseRepository implements CaseRepository {
     }
 
     const corroborations = issue.corroborations ? [...issue.corroborations] : [];
-    const alreadyExists = corroborations.some(c => c.contributorName === corroboration.contributorName);
+    const alreadyExists = corroborations.some(c => 
+      (corroboration.contributorUid && c.contributorUid === corroboration.contributorUid) || 
+      (!corroboration.contributorUid && c.contributorName === corroboration.contributorName)
+    );
     if (!alreadyExists) {
       corroborations.push(corroboration);
     }

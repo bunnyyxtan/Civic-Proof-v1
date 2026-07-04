@@ -120,6 +120,7 @@ export function mapIssueToCase(issue: CivicIssue): CivicCase {
     text: corr.citizenNote,
     type: "angle" as const,
     contributorName: corr.contributorName,
+    contributorUid: corr.contributorUid,
     additionalPhotoUrl: corr.imageDataUrl || undefined,
   }));
 
@@ -188,6 +189,7 @@ export function mapIssueToCase(issue: CivicIssue): CivicCase {
     resolutionReasoning: issue.resolutionVerification?.forensicReasoning || null,
     resolvedAt: issue.status === "verified_resolved" ? issue.reportedAt : null,
     authorityLastSeenAt: null,
+    createdByUid: issue.createdByUid,
   };
 }
 
@@ -217,6 +219,7 @@ export function mapCaseToIssue(c: CivicCase): CivicIssue {
     reportedAt: corr.filedAt,
     citizenNote: corr.text,
     contributorName: corr.contributorName,
+    contributorUid: corr.contributorUid,
     imageDataUrl: corr.additionalPhotoUrl,
   }));
 
@@ -292,5 +295,6 @@ export function mapCaseToIssue(c: CivicCase): CivicIssue {
       formalBody: c.escalationPacket.body,
       generatedAt: c.escalationPacket.generatedAt,
     } as any : undefined,
+    createdByUid: c.createdByUid,
   };
 }

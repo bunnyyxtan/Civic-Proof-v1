@@ -136,6 +136,7 @@ export interface CorroborationRecord {
   citizenNote?: string;
   imageDataUrl?: string;
   contributorName: string;
+  contributorUid?: string;
 }
 
 export interface CivicIssue {

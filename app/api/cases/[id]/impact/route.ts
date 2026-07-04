@@ -5,7 +5,8 @@ import { verifyCitizenAuth } from "@/src/lib/auth/verifyAuth";
 
 const ImpactSchema = z.object({
   note: z.string(),
-  chips: z.array(z.string()).optional().default([])
+  chips: z.array(z.string()).optional().default([]),
+  citizenUid: z.string().optional()
 });
 
 export async function POST(
@@ -28,35 +29,33 @@ export async function POST(
     }
 
     const auth = await verifyCitizenAuth(req);
-    const uid = auth?.uid || "anonymous";
-
-    const impactId = `IMP-${Date.now()}`;
-    const newImpact = {
-      id: impactId,
-      note: parsed.note,
-      chips: parsed.chips,
-      createdAt: new Date().toISOString(),
-      createdByUid: uid
-    };
+    const uid = auth?.uid || parsed.citizenUid || "anonymous";
 
     const timelineEvent = {
       id: `EV-IMP-${Date.now()}`,
       timestamp: new Date().toISOString(),
-      title: "Impact Note Added",
+      label: "Impact Note Added",
       description: `A citizen logged how this case is impacting the community: "${parsed.note.substring(0, 50)}${parsed.note.length > 50 ? '...' : ''}"`,
       type: "impact_note_added",
-      actorName: "Citizen Reporter"
+      actor: "citizen" as const
     };
 
-    const corroboration = {
-      id: `CORR-IMP-${Date.now()}`,
-      filedAt: new Date().toISOString(),
-      text: parsed.note,
-      type: "impact",
-      contributorName: "Citizen Reporter"
-    };
+    let updatedCase = currentCase;
 
-    const updatedCase = await repo.addCorroboration(id, corroboration as any);
+    if (uid === currentCase.createdByUid) {
+      updatedCase = await repo.appendTimelineEvent(id, timelineEvent);
+    } else {
+      const corroboration = {
+        id: `CORR-IMP-${Date.now()}`,
+        reportedAt: new Date().toISOString(),
+        citizenNote: parsed.note,
+        contributorUid: uid,
+        contributorName: "Citizen Reporter"
+      };
+
+      await repo.appendTimelineEvent(id, timelineEvent);
+      updatedCase = await repo.addCorroboration(id, corroboration as any);
+    }
 
     return NextResponse.json({
       ok: true,

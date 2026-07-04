@@ -1,29 +1,34 @@
 // src/lib/auth/useCitizenAuth.ts
 import { useEffect, useState } from "react";
-import { getCitizenIdToken, getOrCreateFallbackUid } from "./authClient";
+import { ensureCitizenSession } from "./authClient";
 
 export function useCitizenAuth() {
-  const [user, setUser] = useState<any | null>(null);
+  const [uid, setUid] = useState<string | null>(null);
   const [idToken, setIdToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [fallbackUid] = useState<string>(() => getOrCreateFallbackUid());
 
   useEffect(() => {
-    // Fetch local token on initialization
-    getCitizenIdToken().then((token) => {
-      setIdToken(token);
-      setLoading(false);
+    let mounted = true;
+    ensureCitizenSession().then(({ uid, token }) => {
+      if (mounted) {
+        setUid(uid);
+        setIdToken(token);
+        setLoading(false);
+      }
     });
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const citizen = { uid: fallbackUid, isAnonymous: true };
+  const citizen = { uid: uid || "", isAnonymous: true };
 
   return {
     user: null,
     citizen,
     idToken,
     loading,
-    uid: fallbackUid,
+    uid: uid || "",
     isAnonymous: true,
     email: null,
   };
