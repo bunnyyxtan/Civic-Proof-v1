@@ -39,22 +39,35 @@ export async function POST(
       actor: "citizen" as const
     };
 
-    let updatedCase = currentCase;
-
+    // A citizen cannot corroborate their own report.
     if (uid === currentCase.createdByUid) {
-      updatedCase = await repo.appendTimelineEvent(id, timelineEvent);
-    } else {
-      const corroboration = {
-        id: `CORR-ACT-${Date.now()}`,
-        reportedAt: new Date().toISOString(),
-        citizenNote: parsed.note || "Confirmed active today.",
-        contributorUid: uid,
-        contributorName: "Verified Neighbor"
-      };
-
-      await repo.appendTimelineEvent(id, timelineEvent);
-      updatedCase = await repo.addCorroboration(id, corroboration as any);
+      return NextResponse.json(
+        { ok: false, error: { code: "OWN_CASE", message: "You can't confirm your own report — corroboration must come from other citizens." } },
+        { status: 400 }
+      );
     }
+
+    // Each citizen can confirm a case as active only once.
+    const alreadyConfirmed = (currentCase.corroborations || []).some(
+      (c: any) => c.contributorUid === uid
+    );
+    if (alreadyConfirmed) {
+      return NextResponse.json(
+        { ok: false, error: { code: "ALREADY_CONFIRMED", message: "You've already confirmed this case is active." } },
+        { status: 409 }
+      );
+    }
+
+    const corroboration = {
+      id: `CORR-ACT-${Date.now()}`,
+      reportedAt: new Date().toISOString(),
+      citizenNote: parsed.note || "Confirmed active today.",
+      contributorUid: uid,
+      contributorName: "Verified Neighbor"
+    };
+
+    await repo.appendTimelineEvent(id, timelineEvent);
+    const updatedCase = await repo.addCorroboration(id, corroboration as any);
 
     return NextResponse.json({
       ok: true,

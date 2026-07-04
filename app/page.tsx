@@ -1222,7 +1222,7 @@ export default function CivicProofApp() {
         setStrengthenActiveNote("");
         setStrengthenActiveChecked(false);
       } else {
-        triggerToast("Could not confirm active. Try again.", "breach");
+        triggerToast(data?.error?.message || "Could not confirm active. Try again.", "breach");
       }
     } catch (e) {
       console.error(e);
@@ -1891,6 +1891,7 @@ export default function CivicProofApp() {
                         <span className="text-[10px] text-chalk font-normal">Explain who is affected</span>
                       </button>
 
+                      {selectedCase.createdByUid !== citizen.uid && (
                       <button 
                         onClick={() => setIsActiveModalOpen(true)}
                         className="bg-paper border border-ink text-ink font-sans text-xs py-2 px-1 font-semibold hover:bg-ink/[0.04] stamp-shadow active:translate-y-0.5 shrink-0 flex flex-col items-center gap-1 text-center"
@@ -1898,6 +1899,7 @@ export default function CivicProofApp() {
                         <span className="text-ink font-bold text-sm">Confirm still active</span>
                         <span className="text-[10px] text-chalk font-normal">Verify this issue today</span>
                       </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -2087,7 +2089,10 @@ export default function CivicProofApp() {
                           selectedCase.gps?.address || selectedCase.formattedAddress || selectedCase.city || selectedCase.state || ""
                         );
                         const emailSubject = `Civic Complaint: ${selectedCase.title} [${selectedCase.id}]`;
-                        const emailBody = selectedCase.complaintPacket?.body || "";
+                        const evidenceLink = selectedCase.photoUrl && selectedCase.photoUrl.startsWith("http")
+                          ? `\n\n---\nGeotagged evidence photo (click to view / download):\n${selectedCase.photoUrl}`
+                          : "";
+                        const emailBody = `${selectedCase.complaintPacket?.body || ""}${evidenceLink}`;
 
                         const copyPetition = async () => {
                           try { await navigator.clipboard.writeText(`${emailBody}\n\nComplaint Reference: ${selectedCase.id}`); } catch {}
