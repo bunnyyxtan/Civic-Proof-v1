@@ -20,8 +20,11 @@ export async function GET() {
     overallOk = false;
   }
 
-  if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== "MY_GEMINI_API_KEY" && process.env.BTL_API_KEY) {
+  const gatewayKey = process.env.GATEWAY_API_KEY;
+  const voiceKey = process.env.GEMINI_API_KEY;
+  if (gatewayKey) {
     diagnostics.ai = "configured";
+    diagnostics.voice = voiceKey && voiceKey !== "MY_GEMINI_API_KEY" ? "gemini_ready" : "text_only";
   } else {
     diagnostics.ai = "not_configured";
     overallOk = false;
