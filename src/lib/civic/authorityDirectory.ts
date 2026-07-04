@@ -145,6 +145,17 @@ export function getAuthority(category: CivicCategory, locationText?: string): Au
   return CPGRAMS
 }
 
+export function getEscalationAuthority(category: CivicCategory, locationText?: string): Authority {
+  const primary = getAuthority(category, locationText)
+  if (primary.level === "city") {
+    const loc = (locationText || "").toLowerCase()
+    const state = STATES.find((s) => s.match.some((k) => loc.includes(k)))
+    if (state) return { ...state.authority, level: "state" }
+    return CPGRAMS
+  }
+  return CPGRAMS
+}
+
 /* Gmail compose URL — opens in user's logged-in Gmail, new tab */
 export function buildGmailComposeUrl(to: string, subject: string, body: string): string {
   const p = new URLSearchParams({ view: "cm", fs: "1", to, su: subject, body })

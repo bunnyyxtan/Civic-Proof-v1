@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { CivicCase, GPSCoordinates, CaseStatus, CorroborationType, checkSilenceClockBreach, getGPSDistanceInMeters, findMatchingNearbyCase, routeToDepartment, calculateHarmScore } from '@/src/lib/civic/engine';
 import { loadCases, saveCases, mapIssueToCase } from '@/src/lib/store';
-import { getAuthority, buildGmailComposeUrl, getPortalSteps, type CivicCategory } from "@/src/lib/civic/authorityDirectory";
+import { getAuthority, getEscalationAuthority, buildGmailComposeUrl, getPortalSteps, type CivicCategory } from "@/src/lib/civic/authorityDirectory";
 import { BrandWordmark } from '@/src/components/BrandWordmark';
 import { useCitizenAuth } from '@/src/lib/auth/useCitizenAuth';
 
@@ -447,10 +447,12 @@ export default function CivicProofApp() {
 
   const [isDesktopLayout, setIsDesktopLayout] = useState(false);
   const [handoff, setHandoff] = useState<null | { mode: "email" | "portal"; steps: string[]; dept: string }>(null);
+  const [escHandoff, setEscHandoff] = useState<null | { mode: "email" | "portal"; steps: string[]; dept: string }>(null);
   // Clear any handoff guide when switching to a different case so a stale
   // portal/email guide from a previous case never leaks onto another one.
   useEffect(() => {
     setHandoff(null);
+    setEscHandoff(null);
   }, [selectedCase?.id]);
 
   const [runtimeInfo, setRuntimeInfo] = useState<{ provider: string; textModel: string; visionModel: string; voiceModel: string; gatewayHost: string } | null>(null);
@@ -1860,6 +1862,24 @@ export default function CivicProofApp() {
                       <p className="font-sans text-[10px] text-paper/70 italic mt-1">
                         Every unresolved day is logged permanently on the public timeline.
                       </p>
+                      
+                      <div className="mt-3">
+                        {!selectedCase.escalationPacket ? (
+                          <button
+                            onClick={() => handleGenerateEscalation(selectedCase)}
+                            disabled={isStreamingEscalation}
+                            className="bg-paper text-breach border border-ink stamp-shadow uppercase font-display text-xs font-bold py-1.5 px-3 flex items-center gap-1.5 hover:bg-white active:translate-y-0.5 disabled:opacity-75 disabled:active:translate-y-0"
+                          >
+                            <ShieldAlert className="w-3.5 h-3.5" />
+                            {isStreamingEscalation ? "Compiling RTI escalation…" : "Generate RTI Escalation Now"}
+                          </button>
+                        ) : (
+                          <div className="flex items-center gap-1.5 font-sans text-xs text-paper/90 font-medium mt-1">
+                            <Check className="w-3.5 h-3.5" />
+                            RTI escalation packet ready — see below
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -2243,15 +2263,89 @@ export default function CivicProofApp() {
                             </p>
                           )}
 
-                          <button 
-                            onClick={() => {
-                              navigator.clipboard.writeText(selectedCase.escalationPacket?.body || "");
-                              triggerToast("Escalation writ copied to clipboard.", "breach");
-                            }}
-                            className="w-full bg-paper border border-breach py-1 text-[10px] font-sans font-semibold hover:bg-breach/5"
-                          >
-                            Copy Escalation Petition
-                          </button>
+                          {(() => {
+                            const escAuth = getEscalationAuthority(
+                              selectedCase.category as CivicCategory,
+                              selectedCase.gps?.address || selectedCase.formattedAddress || selectedCase.city || selectedCase.state || ""
+                            );
+                            const escSubject = `RTI Escalation: ${selectedCase.title} [Ref: ${selectedCase.id}]`;
+                            const evidenceLink = selectedCase.photoUrl && selectedCase.photoUrl.startsWith("http")
+                              ? `\n\n---\nGeotagged evidence photo (click to view / download):\n${selectedCase.photoUrl}`
+                              : "";
+                            const escBody = `${selectedCase.escalationPacket?.body || ""}${evidenceLink}`;
+
+                            const copyEsc = async () => {
+                              try { await navigator.clipboard.writeText(`${escBody}\n\nComplaint Reference: ${selectedCase.id}`); } catch {}
+                            };
+
+                            return (
+                              <div className="space-y-2 mt-2">
+                                <div className="flex gap-2">
+                                  {escAuth.email ? (
+                                    <button 
+                                      onClick={() => {
+                                        copyEsc();
+                                        triggerToast("Escalation copied to clipboard.", "breach");
+                                        window.open(buildGmailComposeUrl(escAuth.email!, escSubject, `${escBody}\n\nComplaint Reference: ${selectedCase.id}`), '_blank');
+                                        setEscHandoff({ mode: "email", steps: [], dept: escAuth.departmentName });
+                                      }}
+                                      className="flex-1 bg-paper text-breach border border-breach py-1.5 text-[10px] font-sans font-bold hover:bg-breach/5 flex items-center justify-center gap-1"
+                                    >
+                                      Email Escalation ({escAuth.email})
+                                    </button>
+                                  ) : (
+                                    <button 
+                                      onClick={() => {
+                                        copyEsc();
+                                        triggerToast("Escalation copied to clipboard.", "breach");
+                                        window.open(escAuth.portalUrl, '_blank');
+                                        setEscHandoff({ mode: "portal", steps: getPortalSteps(escAuth, selectedCase.id), dept: escAuth.departmentName });
+                                      }}
+                                      className="flex-1 bg-paper text-breach border border-breach py-1.5 text-[10px] font-sans font-bold hover:bg-breach/5 flex items-center justify-center gap-1"
+                                    >
+                                      Open Grievance Portal
+                                    </button>
+                                  )}
+                                  <button 
+                                    onClick={() => {
+                                      copyEsc();
+                                      triggerToast("Escalation writ copied to clipboard.", "breach");
+                                    }}
+                                    className="px-3 shrink-0 bg-paper border border-breach py-1.5 text-[10px] font-sans font-semibold hover:bg-breach/5 text-breach"
+                                    title="Copy Escalation Petition"
+                                  >
+                                    Copy Escalation
+                                  </button>
+                                </div>
+                                
+                                {escHandoff && (
+                                  <div className="bg-breach/5 border border-breach/20 p-2 space-y-2 text-xs font-sans mt-2">
+                                    <div className="flex justify-between items-center text-breach font-bold">
+                                      <span>Route: {escHandoff.dept}</span>
+                                      <button onClick={() => setEscHandoff(null)}><X className="w-3.5 h-3.5" /></button>
+                                    </div>
+                                    <div className="text-ink/80 text-[10px]">
+                                      {escHandoff.mode === "email" ? (
+                                        <div className="flex items-start gap-1.5">
+                                          <Check className="w-3.5 h-3.5 text-breach mt-0.5" />
+                                          Gmail compose opened with your exact RTI escalation packet pre-filled. Review and click send.
+                                        </div>
+                                      ) : (
+                                        <div className="space-y-1.5">
+                                          {escHandoff.steps.map((s, i) => (
+                                            <div key={i} className="flex gap-1.5">
+                                              <span className="font-mono text-breach shrink-0">{i+1}.</span>
+                                              <span>{s}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </div>
                       )}
                     </div>
