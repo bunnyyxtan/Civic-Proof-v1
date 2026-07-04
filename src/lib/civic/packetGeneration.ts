@@ -41,7 +41,7 @@ EVIDENTIARY ANALYSIS:
 
 LOCATION LOGS:
 • Primary Location Address: ${locationName}
-• Verified Proof File: Sealed under cryptographic reference ID ${issueId}-PROOF-01
+• Verified Proof File: Sealed under deterministic reference ID ${issueId}-PROOF-01
 
 CITIZEN INJUNCTION & REQUESTED ACTION:
 We urge your department to initiate an immediate physical inspection and deploy corrective crew assets within 48 hours. Should this defect remain unresolved, this docket will be escalated to the Public Grievance Redressal Commission and the Ward Commissioner's Desk for neglect of duty audits.

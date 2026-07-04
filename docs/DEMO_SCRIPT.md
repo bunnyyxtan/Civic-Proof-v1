@@ -22,9 +22,9 @@
 * **Action:** Citizen snaps a photo of an open drain near a school and adds a note: *"Kids are walking around this open sewer main."*
 * **Visual:** Polaroid develops. The typewriter sequential output reveals:
   * **EV-ANALYSIS:** Verified by Cognitive Proof.
-  * **CATEGORY:** WATER LEAKAGE & OVERFLOW.
-  * **ROUTED:** BWSSB Stormwater cell.
-  * **HARM SCORE:** 88/100 points (Critical).
+  * **CATEGORY:** WATER OVERFLOW.
+  * **ROUTED:** Delhi Jal Board.
+  * **HARM SCORE:** 93/100 points (Critical).
 * **Speaker:**
 > *"The moment evidence is submitted, the BTL Runtime vision model parses visual details and extracts structured metadata. Deterministic rules calculate a public Harm Score—factoring in category risks and children's school proximity. It is routed instantly to the right desk."*
 
@@ -35,13 +35,13 @@
 > *"When another resident flags the same hazard, CivicProof doesn't create a new ticket. It merges it into the parent case file as a verified corroboration signature. The Harm Score scales, amplifying community demand under one unified dockets page."*
 
 ### Moment C: The Silence Clock Watchdog
-* **Action:** Case displays "Ignored for 9 Days" (breaching the 2-day BWSSB SLA).
+* **Action:** Case displays "12 DAYS" elapsed (breaching the 7-day Silence Clock SLA limit for formal resolution).
 * **Visual:** The user clicks *"Compile Escalation Packet"*.
 * **Speaker:**
 > *"Our Silence Clock monitors administrative inaction. When an SLA is breached, CivicProof drafts a formal, high-urgency complaint and escalation petition, citing local ward codes, ready for physical filing."*
 
-### Moment D: Forensic Resolution Audit
-* **Action:** User uploads a post-repair photo and notes: *"They filled it up and sealed the concrete."*
+### Moment D: Forensic Resolution Audit (CP-2026-DL2C8)
+* **Action:** User looks at the resolved Power Line Danger case and notes the community comment: *"Fixed by utility team, wires secured."*
 * **Visual:** Forensic audit analyzes post-repair picture. Visual inspection returns: **REPAIR VERIFIED. STATUS: CLOSED & SEALED.**
 * **Speaker:**
 > *"When work is claimed, we do not take their word for it. The citizen uploads visual proof of repair. The BTL Runtime vision model compares before and after photographs to forensically audit the work, closing the case file only when safe."*

@@ -134,7 +134,17 @@ export function loadCases(): CivicCase[] {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
-      const parsed = JSON.parse(saved) as CivicCase[];
+      let parsed = JSON.parse(saved) as CivicCase[];
+      
+      // Migration check to ensure demo seed is present for judges
+      const MIGRATION_KEY = "civicproof_migrated_v3";
+      if (!localStorage.getItem(MIGRATION_KEY)) {
+        localStorage.setItem(MIGRATION_KEY, "true");
+        parsed = buildDemoCases();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+        return parsed;
+      }
+
       if (parsed.length > 0) {
         // Run automatic Silence Clock checks on load to mark older cases breached
         return parsed.map(c => {

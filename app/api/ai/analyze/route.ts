@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
       metadata: { hasNotes: !!userNotes, hasVoice: !!voiceTranscript }
     });
 
-    // Adapt to domain schema input (pass original image to Gemini for full high-fidelity analysis)
+    // Adapt to domain schema input (pass original image to BTL vision model for full high-fidelity analysis)
     const intake: ReportIntake = {
       imageDataUrl: photoUrl,
       locationName: gps?.address || "Location detected nearby",

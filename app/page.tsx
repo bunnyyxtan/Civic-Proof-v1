@@ -2402,7 +2402,7 @@ export default function CivicProofApp() {
                     </div>
 
                     <div className="text-center pt-8 border-t border-ink/20 font-sans text-[9px] text-chalk">
-                      END OF CIVICPROOF CASE FILE. CRYPTOGRAPHICALLY SECURED ON PUBLIC LEDGER.
+                      END OF CIVICPROOF CASE FILE. SECURED ON PUBLIC LEDGER.
                     </div>
 
                   </div>
@@ -2441,6 +2441,17 @@ export default function CivicProofApp() {
                 {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
               </button>
             </div>
+
+            {/* BTL Runtime Badge (High Visibility) */}
+            {runtimeInfo && (
+              <div className="flex flex-wrap items-center justify-between border-2 border-ink p-2 bg-ink text-paper mb-4 stamp-shadow-sm">
+                <span className="font-display font-bold uppercase text-xs tracking-wider text-stamp">⚡ Powered by {runtimeInfo.provider}</span>
+                <div className="flex gap-2 text-[9px] font-mono font-bold uppercase">
+                  <span className="bg-paper/20 px-2 py-1">Text: {runtimeInfo.textModel}</span>
+                  <span className="bg-paper/20 px-2 py-1">Vision: {runtimeInfo.visionModel}</span>
+                </div>
+              </div>
+            )}
 
             {/* Giant Stamp Report Something button (Section 7.1) */}
             <button 
@@ -2659,6 +2670,8 @@ export default function CivicProofApp() {
                   </div>
                 </div>
               </div>
+
+              {/* BTL badge moved to top header */}
 
             </div>
 
@@ -3460,7 +3473,7 @@ export default function CivicProofApp() {
                 </div>
 
                 <p className="font-sans text-sm text-chalk px-4 leading-relaxed">
-                  Your geotagged photographic evidence has been cryptographically secured. The file has been deterministic routed to the designated engineering ward supervisor. You will be notified the instant an authority views this file.
+                  Your geotagged photographic evidence has been securely stored. The file has been deterministic routed to the designated engineering ward supervisor. You will be notified the instant an authority views this file.
                 </p>
 
                 <div className="border border-ink p-4 bg-paper/60 font-mono text-xs text-left divide-y divide-ink/15">
@@ -3550,7 +3563,7 @@ export default function CivicProofApp() {
                   <h5 className="font-display font-bold uppercase text-ink tracking-wide text-xs">
                     {getLocationPillText() === "LOCATION NOT SET" ? "Local Ledger Node" : `${getLocationPillText()} Ledger Node`}
                   </h5>
-                  <p>All items in this public ledger are cryptographically synced across neighborhood devices. Every corroborating thud strengthens the case file and prevents municipal silencing.</p>
+                  <p>All items in this public ledger are synced across neighborhood devices. Every corroborating thud strengthens the case file and prevents municipal silencing.</p>
                 </div>
               </div>
 

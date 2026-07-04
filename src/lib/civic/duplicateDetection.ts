@@ -44,12 +44,18 @@ export function findDuplicateCandidates(
         c.latitude, c.longitude
       );
     } else {
-      // If no coordinates, mock a distance based on location name similarity or baseline
+      // If no coordinates, use a heuristic distance based on location name similarity
       const loc1 = report.locationName.toLowerCase();
       const loc2 = c.locationName.toLowerCase();
+      
+      const tokens1 = new Set(loc1.split(/\s+/));
+      const tokens2 = new Set(loc2.split(/\s+/));
+      const intersection = new Set([...tokens1].filter(x => tokens2.has(x)));
+      const hasSignificantOverlap = intersection.size > 0 && (intersection.size >= tokens1.size / 2 || intersection.size >= tokens2.size / 2);
+
       if (loc1 === loc2) {
         distanceMeters = 10;
-      } else if (loc1.includes("indiranagar") && loc2.includes("indiranagar")) {
+      } else if (loc1.includes(loc2) || loc2.includes(loc1) || hasSignificantOverlap) {
         distanceMeters = 300;
       } else {
         distanceMeters = 800;

@@ -10,7 +10,7 @@ export interface CaseRepository {
   listCases(): Promise<CivicIssue[]>;
 
   /**
-   * Retrieves a specific civic case file by its unique cryptographic ID.
+   * Retrieves a specific civic case file by its unique ID.
    */
   getCaseById(id: string): Promise<CivicIssue | null>;
 

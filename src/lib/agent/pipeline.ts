@@ -49,7 +49,7 @@ export async function runReportPipeline(
       reportedAt: report.reportedAt,
       citizenNote: report.citizenNote,
       imageDataUrl: report.imageDataUrl || report.imageUrl,
-      contributorName: "Neighbor Coalition Contributor",
+      contributorName: (report as any).reporterName || "Anonymous Corroborating Citizen",
     };
 
     return {
@@ -100,11 +100,11 @@ export async function runReportPipeline(
     }),
     createTimelineEvent("report_analyzed", {
       timestamp: report.reportedAt,
-      description: `CivicProof AI verified defect category as "${analysis.normalizedCategory}" with ${Math.round(analysis.confidence * 100)}% accuracy.`,
+      description: `CivicProof AI verified defect category as "${analysis.normalizedCategory}" with ${Math.round(analysis.confidence * 100)}% confidence.`,
     }),
     createTimelineEvent("case_created", {
       timestamp: report.reportedAt,
-      description: `Cryptographic civic case file ${issueId} opened on public registry.`,
+      description: `Civic case file ${issueId} opened on public registry.`,
     }),
     createTimelineEvent("department_routed", {
       timestamp: report.reportedAt,

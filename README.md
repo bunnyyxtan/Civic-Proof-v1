@@ -26,6 +26,46 @@ CivicProof acts as an agentic intermediary between the community and municipal d
 
 ---
 
+## 🏗️ Architecture & Data Flow
+
+```text
+[ Citizen Intake ] (Photo, Notes, GPS)
+       │
+       ▼
+[ BTL Runtime Vision/Text Analysis ]
+       │
+       ▼
+[ Dedup / Corroboration Merge ] ────── (If duplicate detected)
+       │
+       ▼
+[ Deterministic Harm Scoring ]
+       │
+       ▼
+[ Authority Routing ]
+       │
+       ▼
+[ Silence Clock Monitoring ]
+       │
+       ▼
+[ Escalation Ladder ] (City → State → CPGRAMS)
+       │
+       ▼
+[ RTI Generation ]
+       │
+       ▼
+[ Before/After Resolution Proof ]
+```
+
+### Production Hygiene
+Unlike typical hackathon prototypes, CivicProof is built with robust production-grade scaffolding:
+- **Zod Validation**: Strict schema enforcement across all AI outputs and API endpoints.
+- **Rate Limiting**: Built-in protection against spam and API abuse.
+- **Audit Logs**: Immutable trailing logs for all system routing decisions and evidence processing.
+- **Dead-Letter Queue**: Graceful fallback handling and retry mechanisms for network or AI timeouts.
+- **Ops Endpoints**: Integrated `/api/ops/health`, `/api/ops/readiness`, and `/api/ops/runtime` for real-time observability.
+
+---
+
 ## 💻 Tech Stack
 
 * **Next.js 14.2.15 (App Router)**: High-performance, production-ready React framework.
