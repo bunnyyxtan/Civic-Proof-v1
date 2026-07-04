@@ -158,7 +158,7 @@ export default function CivicProofApp() {
         if (active && data.success && Array.isArray(data.cases)) {
           setStorageUnavailable(false);
           if (data.cases.length === 0) {
-            setCases([]);
+            setCases(loadCases());
             return;
           }
 
