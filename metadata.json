@@ -1,0 +1,5 @@
+{
+  "name": "CivicProof",
+  "description": "CivicProof turns citizen reports into evidence-backed civic case files.",
+  "requestFramePermissions": ["camera", "microphone", "geolocation"]
+}
