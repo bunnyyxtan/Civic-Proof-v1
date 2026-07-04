@@ -13,6 +13,117 @@ function performLegacyLocalStorageCleanup() {
   // No-op
 }
 
+function buildDemoCases(): CivicCase[] {
+  const anchorTime = Date.parse("2026-06-29T09:32:32+05:30");
+  const iso = (daysAgo: number) => new Date(anchorTime - daysAgo * 24 * 60 * 60 * 1000).toISOString();
+
+  return [
+    {
+      id: "CP-2026-DL9F2",
+      dataOrigin: "judge_demo",
+      title: "Massive Water Leak on Main Road",
+      description: "Water has been overflowing from the broken main line for days.",
+      category: "Water Overflow",
+      department: routeToDepartment("Water Overflow"),
+      gps: { latitude: 28.6625, longitude: 77.129, address: "Patel Nagar, Delhi", accuracyMeters: 10, confirmedByUser: true },
+      locationShortLabel: "Patel Nagar",
+      city: "New Delhi",
+      state: "Delhi",
+      photoUrl: "https://picsum.photos/seed/waterleak/800/600",
+      filedAt: iso(12),
+      status: "BREACHED",
+      harmScore: 93,
+      harmScoreBreakdown: { safetyHazard: 18, publicImpact: 25, vulnerabilityFactor: 25, durationFactor: 25 },
+      createdByUid: "demo-creator-1",
+      corroborations: [
+        { id: "C1", filedAt: iso(11), text: "Confirmed, it's a huge mess.", type: "impact", contributorName: "Verified Neighbor", contributorUid: "demo-n1" },
+        { id: "C2", filedAt: iso(10), text: "Still leaking, road is flooded.", type: "angle", contributorName: "Verified Neighbor", contributorUid: "demo-n2" },
+        { id: "C3", filedAt: iso(8), text: "Accidents waiting to happen.", type: "angle", contributorName: "Verified Neighbor", contributorUid: "demo-n3" },
+        { id: "C4", filedAt: iso(7), text: "Has not stopped.", type: "timestamp", contributorName: "Verified Neighbor", contributorUid: "demo-n4" },
+      ],
+      timeline: [
+        { id: "T1", timestamp: iso(12), title: "Report Filed", description: "Initial complaint lodged.", type: "file", actorName: "Citizen" },
+        { id: "T2", timestamp: iso(12), title: "Routed to Department", description: "Complaint sent to Delhi Jal Board.", type: "route", actorName: "System" },
+        { id: "T3", timestamp: iso(11), title: "Neighbor corroboration added", description: "Community weight increased.", type: "corroborate", actorName: "Verified Neighbor" },
+        { id: "T4", timestamp: iso(5), title: "SLA Silence Breach Detected", description: "Silence Clock crossed 7-day milestone.", type: "breach", actorName: "System" },
+      ],
+      complaintPacket: {
+        subject: "Formal Complaint: Water Overflow at Patel Nagar",
+        recipient: "Delhi Jal Board",
+        body: "We formally report a severe water leak...",
+        generatedAt: iso(12)
+      },
+      escalationPacket: null,
+      resolutionReasoning: null,
+      resolvedAt: null,
+      authorityLastSeenAt: null
+    },
+    {
+      id: "CP-2026-DL4A7",
+      dataOrigin: "judge_demo",
+      title: "Dangerous Pothole on Patel Nagar",
+      description: "Deep pothole causing traffic issues and bike accidents.",
+      category: "Pothole & Road Damage",
+      department: routeToDepartment("Pothole & Road Damage"),
+      gps: { latitude: 28.6618, longitude: 77.1298, address: "Patel Nagar, Delhi", accuracyMeters: 10, confirmedByUser: true },
+      locationShortLabel: "Patel Nagar",
+      city: "New Delhi",
+      state: "Delhi",
+      photoUrl: "https://picsum.photos/seed/pothole/800/600",
+      filedAt: iso(2),
+      status: "ROUTED",
+      harmScore: 47,
+      harmScoreBreakdown: { safetyHazard: 15, publicImpact: 14, vulnerabilityFactor: 12, durationFactor: 6 },
+      createdByUid: "demo-creator-2",
+      corroborations: [
+        { id: "C5", filedAt: iso(1), text: "Almost fell there yesterday.", type: "impact", contributorName: "Verified Neighbor", contributorUid: "demo-n5" },
+      ],
+      timeline: [
+        { id: "T5", timestamp: iso(2), title: "Report Filed", description: "Initial complaint lodged.", type: "file", actorName: "Citizen" },
+        { id: "T6", timestamp: iso(2), title: "Routed to Department", description: "Complaint sent.", type: "route", actorName: "System" },
+        { id: "T7", timestamp: iso(1), title: "Neighbor corroboration added", description: "Community weight increased.", type: "corroborate", actorName: "Verified Neighbor" },
+      ],
+      complaintPacket: null,
+      escalationPacket: null,
+      resolutionReasoning: null,
+      resolvedAt: null,
+      authorityLastSeenAt: null
+    },
+    {
+      id: "CP-2026-DL2C8",
+      dataOrigin: "judge_demo",
+      title: "Exposed Power Lines",
+      description: "Live wire dangling dangerously close to the footpath.",
+      category: "Power Line Danger",
+      department: routeToDepartment("Power Line Danger"),
+      gps: { latitude: 28.6710, longitude: 77.1200, address: "Karol Bagh, Delhi", accuracyMeters: 10, confirmedByUser: true },
+      locationShortLabel: "Karol Bagh",
+      city: "New Delhi",
+      state: "Delhi",
+      photoUrl: "https://picsum.photos/seed/powerline/800/600",
+      filedAt: iso(20),
+      status: "RESOLVED",
+      harmScore: 88,
+      harmScoreBreakdown: { safetyHazard: 25, publicImpact: 20, vulnerabilityFactor: 25, durationFactor: 18 },
+      createdByUid: "demo-creator-3",
+      corroborations: [
+        { id: "C6", filedAt: iso(19), text: "Very dangerous for kids.", type: "impact", contributorName: "Verified Neighbor", contributorUid: "demo-n6" },
+        { id: "C7", filedAt: iso(18), text: "Still exposed.", type: "timestamp", contributorName: "Verified Neighbor", contributorUid: "demo-n7" },
+      ],
+      timeline: [
+        { id: "T8", timestamp: iso(20), title: "Report Filed", description: "Initial complaint lodged.", type: "file", actorName: "Citizen" },
+        { id: "T9", timestamp: iso(19), title: "Neighbor corroboration added", description: "Community weight increased.", type: "corroborate", actorName: "Verified Neighbor" },
+        { id: "T10", timestamp: iso(9), title: "Issue Resolved", description: "Forensic verification passed.", type: "resolve", actorName: "System" },
+      ],
+      complaintPacket: null,
+      escalationPacket: null,
+      resolutionReasoning: "Fixed by utility team, wires secured.",
+      resolvedAt: iso(9),
+      authorityLastSeenAt: null
+    }
+  ] as CivicCase[];
+}
+
 export function loadCases(): CivicCase[] {
   if (typeof window === "undefined") return INITIAL_EMPTY_CASES;
   
@@ -23,10 +134,11 @@ export function loadCases(): CivicCase[] {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved) as CivicCase[];
-      // Run automatic Silence Clock checks on load to mark older cases breached
-      return parsed.map(c => {
-        if (c.status !== 'RESOLVED' && c.status !== 'BREACHED') {
-          const { isBreached } = checkSilenceClockBreach(c);
+      if (parsed.length > 0) {
+        // Run automatic Silence Clock checks on load to mark older cases breached
+        return parsed.map(c => {
+          if (c.status !== 'RESOLVED' && c.status !== 'BREACHED') {
+            const { isBreached } = checkSilenceClockBreach(c);
           if (isBreached) {
             c.status = 'BREACHED';
             // Add timeline event if not already present
@@ -44,12 +156,13 @@ export function loadCases(): CivicCase[] {
         }
         return c;
       });
+      }
     }
   } catch (err) {
     console.error("Failed to load local storage cases:", err);
   }
   
-  return INITIAL_EMPTY_CASES;
+  return buildDemoCases();
 }
 
 export function saveCases(cases: CivicCase[]) {
