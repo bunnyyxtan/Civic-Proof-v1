@@ -166,11 +166,11 @@ export function mapIssueToCase(issue: CivicIssue): CivicCase {
     filedAt: issue.reportedAt,
     status: mappedStatus,
     harmScore: issue.harmScore,
-    harmScoreBreakdown: {
-      safetyHazard: issue.harmScore >= 80 ? 25 : 15,
-      publicImpact: issue.corroborations.length >= 3 ? 25 : 15,
-      vulnerabilityFactor: issue.riskFactors.length >= 2 ? 25 : 12,
-      durationFactor: issue.status === "overdue" ? 25 : 10,
+    harmScoreBreakdown: issue.harmScoreBreakdown || {
+      safetyHazard: Math.round(issue.harmScore * 0.4),
+      publicImpact: Math.round(issue.harmScore * 0.2),
+      vulnerabilityFactor: Math.round(issue.harmScore * 0.2),
+      durationFactor: Math.round(issue.harmScore * 0.2),
     },
     corroborations,
     timeline,

@@ -121,6 +121,7 @@ export class SupabaseCaseRepository implements CaseRepository {
       ...issue,
       corroborations,
       harmScore: scoreResult.score,
+      harmScoreBreakdown: scoreResult.breakdown,
     };
 
     await this.upsertIssue(updated);

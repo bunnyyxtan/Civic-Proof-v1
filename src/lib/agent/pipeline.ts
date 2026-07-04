@@ -123,6 +123,7 @@ export async function runReportPipeline(
     status: "routed",
     severity: analysis.severity,
     harmScore: harmResult.score,
+    harmScoreBreakdown: harmResult.breakdown,
     locationName: report.locationName,
     latitude: report.latitude || 12.9716, // Default Bangalore
     longitude: report.longitude || 77.5946,
