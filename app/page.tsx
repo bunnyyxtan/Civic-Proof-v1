@@ -15,7 +15,7 @@ import {
   ArrowLeft, Share2, Printer, Check, Radio, AlertCircle, Copy, Upload,
   RefreshCw
 } from 'lucide-react';
-import { CivicCase, GPSCoordinates, CaseStatus, CorroborationType, checkSilenceClockBreach, getGPSDistanceInMeters, findMatchingNearbyCase, routeToDepartment, calculateHarmScore } from '@/src/lib/civic/engine';
+import { CivicCase, GPSCoordinates, CaseStatus, CorroborationType, Corroboration, checkSilenceClockBreach, getGPSDistanceInMeters, findMatchingNearbyCase, routeToDepartment, calculateHarmScore } from '@/src/lib/civic/engine';
 import { loadCases, saveCases, mapIssueToCase } from '@/src/lib/store';
 import { getAuthority, getEscalationAuthority, buildGmailComposeUrl, getPortalSteps, type CivicCategory } from "@/src/lib/civic/authorityDirectory";
 import { BrandWordmark } from '@/src/components/BrandWordmark';
@@ -1071,9 +1071,67 @@ export default function CivicProofApp() {
   // 4. File as standard new case (Moment 5.1 - The Stamp Thud)
   const handleFinalizeFiling = (forceNew = false) => {
     if (matchingNearby && !forceNew) {
-      // User opted to corroborate instead (Moment 5.3 -> 5.4 Signature Flow)
-      // Call standard report submission since handleCorroborateAction is not implemented
-      triggerToast("Corroboration flow initiated.", "tally");
+      if (matchingNearby.createdByUid === citizen?.uid || (matchingNearby.corroborations || []).some(c => c.contributorUid === citizen?.uid)) {
+        triggerToast("You already have proof on this case.", "breach");
+        setSelectedCase(matchingNearby);
+        resetCaptureFlow();
+        setActiveTab('cases');
+        return;
+      }
+
+      const newCorr: Corroboration = {
+        id: `CORR-${Date.now()}`,
+        filedAt: new Date().toISOString(),
+        text: analysisResult?.description || "Corroborated by neighbor.",
+        type: 'angle',
+        contributorName: "Verified Neighbor",
+        contributorUid: citizen?.uid || "anonymous",
+        additionalPhotoUrl: analysisResult?.photoUrl
+      };
+
+      let mergedCase = matchingNearby;
+      const updatedCases = cases.map(c => {
+        if (c.id === matchingNearby.id) {
+          const corrs = [...(c.corroborations || []), newCorr];
+          const uniqueUids = new Set(corrs.map(x => x.contributorUid).filter(uid => uid !== c.createdByUid));
+          const voices = 1 + uniqueUids.size;
+
+          const isVulnerable = (c.harmScoreBreakdown?.vulnerabilityFactor || 0) >= 25;
+          const { score, breakdown } = calculateHarmScore(
+            c.category,
+            c.filedAt,
+            voices,
+            isVulnerable
+          );
+
+          const newEvent = {
+            id: `EV-CORR-${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            title: "Neighbor corroboration added",
+            description: `A citizen verified this issue. Community weight is now ${voices} voices.`,
+            type: "corroborate" as const,
+            actor: "citizen" as const,
+            actorName: "Verified Neighbor"
+          };
+
+          mergedCase = {
+            ...c,
+            corroborations: corrs,
+            harmScore: score,
+            harmScoreBreakdown: breakdown,
+            timeline: [...c.timeline, newEvent]
+          };
+          return mergedCase;
+        }
+        return c;
+      });
+
+      setCases(updatedCases);
+      saveCases(updatedCases);
+      setSelectedCase(mergedCase);
+      setMatchingNearby(null);
+      setAnalysisResult(null);
+      triggerToast("Merged! Your proof strengthened the neighborhood case.", "tally");
       setCaptureStep(1);
       setActiveTab('cases');
       return;
