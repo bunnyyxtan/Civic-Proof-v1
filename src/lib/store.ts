@@ -101,6 +101,7 @@ function buildDemoCases(): CivicCase[] {
       city: "New Delhi",
       state: "Delhi",
       photoUrl: "https://picsum.photos/seed/powerline/800/600",
+      resolutionPhotoUrl: "https://picsum.photos/seed/powerline-fixed/800/600",
       filedAt: iso(20),
       status: "RESOLVED",
       harmScore: 88,

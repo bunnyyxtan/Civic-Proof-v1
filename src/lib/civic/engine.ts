@@ -104,6 +104,7 @@ export interface CivicCase {
   complaintPacket: ComplaintPacket | null;
   escalationPacket: ComplaintPacket | null;
   resolutionReasoning: string | null;
+  resolutionPhotoUrl?: string | null;
   resolvedAt: string | null;
   authorityLastSeenAt: string | null;
   createdByUid?: string;

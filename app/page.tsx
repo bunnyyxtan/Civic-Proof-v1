@@ -126,6 +126,19 @@ const EmptyStatePanel = ({
 
 const supporterCount = (c: CivicCase) => 1 + new Set(c.corroborations.filter(x => x.contributorUid && x.contributorUid !== c.createdByUid).map(x => x.contributorUid)).size;
 
+const getCivicPressure = (c: CivicCase) => {
+  const voices = supporterCount(c);
+  const { elapsedDays } = checkSilenceClockBreach(c);
+  const raw = c.harmScore * 0.6 + (voices - 1) * 8 + Math.min(elapsedDays, 14) * 1.5;
+  const score = Math.max(0, Math.min(100, Math.round(raw)));
+  const tier =
+    score >= 80 ? { label: "CRITICAL", color: "bg-breach", text: "text-breach" } :
+    score >= 60 ? { label: "HIGH",     color: "bg-stamp",  text: "text-stamp" } :
+    score >= 30 ? { label: "BUILDING", color: "bg-stamp/70", text: "text-stamp" } :
+                  { label: "LOW",      color: "bg-tally",  text: "text-tally" };
+  return { score, ...tier };
+};
+
 export default function CivicProofApp() {
   // Authentication & Identity
   const { citizen, idToken, loading: authLoading } = useCitizenAuth();
@@ -1304,6 +1317,7 @@ export default function CivicProofApp() {
                 status: "RESOLVED" as CaseStatus,
                 resolvedAt: new Date().toISOString(),
                 resolutionReasoning: data.verification.verificationReasoning,
+                resolutionPhotoUrl: resolutionPhoto,
                 timeline: [
                   ...c.timeline,
                   {
@@ -2177,6 +2191,18 @@ export default function CivicProofApp() {
                       </div>
                     </div>
                     
+                    {selectedCase.resolutionPhotoUrl && (
+                      <div className="grid grid-cols-2 gap-2 mb-3">
+                        <div className="border border-ink/30">
+                          <div className="bg-breach text-paper text-[10px] font-bold uppercase tracking-wider px-2 py-1">Before · Reported</div>
+                          <img src={selectedCase.photoUrl} alt="Before" className="w-full h-40 object-cover" />
+                        </div>
+                        <div className="border border-ink/30">
+                          <div className="bg-tally text-paper text-[10px] font-bold uppercase tracking-wider px-2 py-1">After · Resolved</div>
+                          <img src={selectedCase.resolutionPhotoUrl} alt="After" className="w-full h-40 object-cover" />
+                        </div>
+                      </div>
+                    )}
                     <p className="font-sans text-xs leading-normal text-ink/90 italic bg-paper p-3 border border-tally border-dashed">
                       &ldquo;{selectedCase.resolutionReasoning || 'Community verified repair completion. Street restored to optimal public standard.'}&rdquo;
                     </p>
@@ -2298,6 +2324,20 @@ export default function CivicProofApp() {
                         <div className="flex justify-between border-b border-ink/10 pb-1"><span>Vulnerability</span> <strong>{selectedCase.harmScoreBreakdown.vulnerabilityFactor}/25</strong></div>
                         <div className="flex justify-between border-b border-ink/10 pb-1"><span>Duration</span> <strong>{selectedCase.harmScoreBreakdown.durationFactor}/25</strong></div>
                       </div>
+                      {(() => {
+                        const p = getCivicPressure(selectedCase);
+                        return (
+                          <div className="mt-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[10px] uppercase tracking-wider text-chalk font-bold">Civic Pressure</span>
+                              <span className={`text-[10px] font-black ${p.text}`}>{p.label} · {p.score}</span>
+                            </div>
+                            <div className="w-full h-2.5 bg-ink/10 border border-ink/20 overflow-hidden">
+                              <div className={`h-full ${p.color}`} style={{ width: `${p.score}%` }} />
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {/* Evidence & Corroboration */}
@@ -2571,9 +2611,14 @@ export default function CivicProofApp() {
                               <span className="text-paper/80 font-medium uppercase">
                                 {item.status === 'RESOLVED' ? 'Fixed' : `Day ${elapsedDays} of waiting`}
                               </span>
-                              <span className="font-mono text-[9px] font-semibold bg-paper/20 px-1 py-0.5">
-                                {item.status === 'RESOLVED' ? 'Verified' : `HARM ${item.harmScore}`}
-                              </span>
+                              <div className="flex gap-1 items-center">
+                                {(() => { const p = getCivicPressure(item); return (
+                                  <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 border border-ink/20 ${p.text}`}>⚡ {p.label} {p.score}</span>
+                                ); })()}
+                                <span className="font-mono text-[9px] font-semibold bg-paper/20 px-1 py-0.5">
+                                  {item.status === 'RESOLVED' ? 'Verified' : `HARM ${item.harmScore}`}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -2591,23 +2636,26 @@ export default function CivicProofApp() {
                   </div>
                   <div className="space-y-1 relative z-10">
                     <span className="font-sans text-xs font-bold text-chalk uppercase tracking-wider">Neighborhood Load</span>
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-display font-black text-7xl text-stamp leading-none">
-                        {activeCasesCount}
-                      </span>
-                      <span className="font-sans text-sm font-semibold text-ink/80">
-                        {activeCasesCount === 1 ? "case active" : "cases active"} in {getLocationPillText() === "LOCATION NOT SET" ? "your area" : getLocationPillText()}
-                      </span>
-                    </div>
-                    {activeCasesCount === 0 ? (
-                      <p className="font-sans text-xs text-chalk pt-1">
-                        CivicProof will calculate neighborhood load once real cases are filed.
-                      </p>
-                    ) : (
-                      <p className="font-sans text-xs text-chalk pt-1">
-                        We are {resolvedCasesCount} cases resolved this cycle. Power in neighbor signals.
-                      </p>
-                    )}
+                    {(() => {
+                      const active = cases.filter(c => c.status !== 'RESOLVED');
+                      const hoodScore = active.length ? Math.max(...active.map(c => getCivicPressure(c).score)) : 0;
+                      const tier = hoodScore >= 80 ? { label: "CRITICAL", color: "bg-breach" }
+                        : hoodScore >= 60 ? { label: "HIGH", color: "bg-stamp" }
+                        : hoodScore >= 30 ? { label: "BUILDING", color: "bg-stamp/70" }
+                        : { label: active.length ? "LOW" : "QUIET", color: "bg-tally" };
+                      return (
+                        <div className="mt-2">
+                          <div className="flex items-baseline justify-between">
+                            <span className="text-3xl font-display font-black text-ink">{hoodScore}</span>
+                            <span className="text-xs font-bold text-chalk">{tier.label}</span>
+                          </div>
+                          <div className="w-full h-2.5 bg-ink/10 border border-ink/20 overflow-hidden mt-1">
+                            <div className={`h-full ${tier.color}`} style={{ width: `${hoodScore}%` }} />
+                          </div>
+                          <p className="text-[10px] text-chalk mt-1">Neighborhood pressure across {active.length} active {active.length === 1 ? "case" : "cases"}.</p>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
@@ -2857,9 +2905,14 @@ export default function CivicProofApp() {
                             <span className="text-paper/80 font-medium uppercase">
                               {item.status === 'RESOLVED' ? 'Fixed' : `Day ${elapsedDays} of waiting`}
                             </span>
-                            <span className="font-mono text-[9px] font-semibold bg-paper/20 px-1 py-0.5">
-                              {item.status === 'RESOLVED' ? 'Verified' : `HARM ${item.harmScore}`}
-                            </span>
+                            <div className="flex gap-1 items-center">
+                              {(() => { const p = getCivicPressure(item); return (
+                                <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 border border-ink/20 ${p.text}`}>⚡ {p.label} {p.score}</span>
+                              ); })()}
+                              <span className="font-mono text-[9px] font-semibold bg-paper/20 px-1 py-0.5">
+                                {item.status === 'RESOLVED' ? 'Verified' : `HARM ${item.harmScore}`}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
