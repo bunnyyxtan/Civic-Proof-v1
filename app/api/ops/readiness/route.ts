@@ -21,10 +21,8 @@ export async function GET() {
   }
 
   const gatewayKey = process.env.GATEWAY_API_KEY;
-  const voiceKey = process.env.GEMINI_API_KEY;
   if (gatewayKey) {
     diagnostics.ai = "configured";
-    diagnostics.voice = voiceKey && voiceKey !== "MY_GEMINI_API_KEY" ? "gemini_ready" : "text_only";
   } else {
     diagnostics.ai = "not_configured";
     overallOk = false;

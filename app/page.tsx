@@ -9,7 +9,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import nextDynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  MapPin, Camera, Mic, Volume2, Globe, Heart, FileText, CheckCircle, 
+  MapPin, Camera, Volume2, Globe, Heart, FileText, CheckCircle, 
   AlertTriangle, ArrowRight, User, Home, ShieldAlert, Sparkles, X, 
   Plus, Info, ChevronUp, Trash2, Sun, Moon, VolumeX, Shield, Clock,
   ArrowLeft, Share2, Printer, Check, Radio, AlertCircle, Copy, Upload,
@@ -21,8 +21,7 @@ import { getAuthority, getEscalationAuthority, buildGmailComposeUrl, getPortalSt
 import { BrandWordmark } from '@/src/components/BrandWordmark';
 import { useCitizenAuth } from '@/src/lib/auth/useCitizenAuth';
 
-import { encodeWAV } from '@/src/lib/audio/wavEncoder';
-import { downsampleBuffer } from '@/src/lib/audio/downsample';
+
 const MapComponent = nextDynamic(() => import('@/components/Map'), { ssr: false });
 
 // Web Audio API Synthesizer for tactile analog sound design (Moments 5.1, 5.2, 5.4)
@@ -191,24 +190,7 @@ export default function CivicProofApp() {
   const [captureStep, setCaptureStep] = useState<number>(1); // 1: Camera Select, 2: Reveal, 3: Stamp, 4: Confirmed
   const [customPhoto, setCustomPhoto] = useState<string | null>(null);
   const [manualCategory, setManualCategory] = useState<string>('auto-detect');
-  const [voiceNotes, setVoiceNotes] = useState<string>("");
-  const [draftVoiceNotes, setDraftVoiceNotes] = useState<string>("");
-  const [isRecording, setIsRecording] = useState(false);
-  const [voiceMode, setVoiceMode] = useState<'hi-IN' | 'en-IN' | 'mixed-IN'>('mixed-IN');
-  const [voiceStatus, setVoiceStatus] = useState<'default' | 'recording' | 'transcribing' | 'success' | 'empty' | 'error'>('default');
-  const [voiceCapturedMode, setVoiceCapturedMode] = useState<string | null>(null);
 
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const processorRef = useRef<ScriptProcessorNode | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const animationRef = useRef<number | null>(null);
-  const pcmDataRef = useRef<Float32Array[]>([]);
-  const streamRef = useRef<MediaStream | null>(null);
-  const [voiceVolume, setVoiceVolume] = useState<number>(0);
-  const recordingStartTimeRef = useRef<number>(0);
-  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const recognitionRef = useRef<any>(null);
-  const finalTranscriptRef = useRef<string>("");
 
   const [userNotes, setUserNotes] = useState<string>("");
   const [isVulnerableArea, setIsVulnerableArea] = useState(false);
@@ -455,7 +437,7 @@ export default function CivicProofApp() {
     setEscHandoff(null);
   }, [selectedCase?.id]);
 
-  const [runtimeInfo, setRuntimeInfo] = useState<{ provider: string; textModel: string; visionModel: string; voiceModel: string; gatewayHost: string } | null>(null);
+  const [runtimeInfo, setRuntimeInfo] = useState<{ provider: string; textModel: string; visionModel: string; gatewayHost: string } | null>(null);
   useEffect(() => {
     fetch("/api/ops/runtime")
       .then(r => r.json())
@@ -495,301 +477,7 @@ export default function CivicProofApp() {
     setToasts(prev => prev.filter(t => t.id !== id));
   };
 
-  // Real voice recording flow and backend transcription integration
-  const startRecording = async () => {
-    try {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error("Microphone API is not supported in this browser.");
-      }
 
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-      pcmDataRef.current = [];
-      recordingStartTimeRef.current = Date.now();
-      
-      const AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext;
-      const audioCtx = new AudioContext();
-      audioContextRef.current = audioCtx;
-      
-      const source = audioCtx.createMediaStreamSource(stream);
-      
-      // VF3: Analyser Node for Live Waveform
-      const analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 256;
-      source.connect(analyser);
-      analyserRef.current = analyser;
-      
-      const dataArray = new Uint8Array(analyser.frequencyBinCount);
-      const updateVolume = () => {
-        if (!analyserRef.current) return;
-        analyserRef.current.getByteFrequencyData(dataArray);
-        let sum = 0;
-        for (let i = 0; i < dataArray.length; i++) {
-          sum += dataArray[i];
-        }
-        const avg = sum / dataArray.length;
-        setVoiceVolume(Math.min(1, avg / 128)); // Normalize roughly 0-1
-        animationRef.current = requestAnimationFrame(updateVolume);
-      };
-      updateVolume();
-
-      // VF1: ScriptProcessor Node for PCM capture
-      const processor = audioCtx.createScriptProcessor(4096, 1, 1);
-      processor.onaudioprocess = (e: AudioProcessingEvent) => {
-        const inputData = e.inputBuffer.getChannelData(0);
-        pcmDataRef.current.push(new Float32Array(inputData));
-      };
-      
-      source.connect(processor);
-      processor.connect(audioCtx.destination);
-      processorRef.current = processor;
-
-      setVoiceStatus('recording');
-      setIsRecording(true);
-      triggerSound('tick');
-
-      if (recordingTimerRef.current) clearTimeout(recordingTimerRef.current);
-      recordingTimerRef.current = setTimeout(() => {
-        stopRecording();
-      }, 20000);
-
-      // Web Speech API for instant drafts and primary transcription
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      finalTranscriptRef.current = "";
-      if (SpeechRecognition) {
-        setDraftVoiceNotes("");
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = voiceMode === 'hi-IN' ? 'hi-IN' : 'en-IN';
-        
-        let finalStr = '';
-        recognition.onresult = (event: any) => {
-          let interimTranscript = '';
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
-            if (event.results[i].isFinal) {
-              finalStr += event.results[i][0].transcript;
-            } else {
-              interimTranscript += event.results[i][0].transcript;
-            }
-          }
-          finalTranscriptRef.current = finalStr;
-          setDraftVoiceNotes(finalStr + interimTranscript);
-        };
-        try {
-          recognition.start();
-          recognitionRef.current = recognition;
-        } catch (e) {
-          console.warn("Speech recognition failed to start", e);
-        }
-      }
-
-    } catch (err) {
-      console.error("Microphone access failed:", err);
-      if (recognitionRef.current) {
-        try { recognitionRef.current.stop(); } catch (e) {}
-        recognitionRef.current = null;
-      }
-      setVoiceStatus('error');
-      setVoiceNotes("");
-      setVoiceCapturedMode(null);
-      triggerToast("Voice transcription is unavailable right now. Type your note manually and continue.", "breach");
-    }
-  };
-
-  const stopRecording = () => {
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-      animationRef.current = null;
-    }
-    setVoiceVolume(0);
-
-    if (processorRef.current) {
-      processorRef.current.disconnect();
-      processorRef.current = null;
-    }
-    if (analyserRef.current) {
-      analyserRef.current.disconnect();
-      analyserRef.current = null;
-    }
-    
-    let sampleRate = 16000;
-    if (audioContextRef.current) {
-      sampleRate = audioContextRef.current.sampleRate;
-      try { audioContextRef.current.close(); } catch (e) {}
-      audioContextRef.current = null;
-    }
-    
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-
-    const duration = Date.now() - recordingStartTimeRef.current;
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const speechSupported = !!SpeechRecognition;
-
-    const finalizeFallback = () => {
-      if (pcmDataRef.current.length > 0) {
-        // Flatten all chunks
-        let totalLength = 0;
-        for (const chunk of pcmDataRef.current) totalLength += chunk.length;
-        
-        const flatSamples = new Float32Array(totalLength);
-        let offset = 0;
-        for (const chunk of pcmDataRef.current) {
-          flatSamples.set(chunk, offset);
-          offset += chunk.length;
-        }
-        
-        const downsampled = downsampleBuffer(flatSamples, sampleRate, 16000);
-        const audioBlob = encodeWAV(downsampled, 16000);
-        pcmDataRef.current = [];
-
-        if (duration < 800 || flatSamples.length < sampleRate * 0.5) {
-          if (!finalTranscriptRef.current.trim()) {
-            setVoiceStatus('empty');
-            setVoiceNotes("");
-            setVoiceCapturedMode(null);
-            triggerToast("No clear speech detected. Try again or type manually.", "breach");
-          }
-          return;
-        }
-
-        processAudioTranscription(audioBlob);
-      }
-    };
-
-    if (recognitionRef.current) {
-      let handled = false;
-      
-      const onSpeechEnd = () => {
-        if (handled) return;
-        handled = true;
-        const finalTranscript = finalTranscriptRef.current.trim();
-        
-        if (speechSupported && finalTranscript) {
-          setVoiceStatus('success');
-          setVoiceNotes(finalTranscript);
-          setVoiceCapturedMode(voiceMode);
-          triggerToast("Voice note transcribed successfully.", "tally");
-        } else {
-          finalizeFallback();
-        }
-      };
-
-      recognitionRef.current.onend = onSpeechEnd;
-      recognitionRef.current.stop();
-      recognitionRef.current = null;
-      
-      // Safety timeout in case onend doesn't fire
-      setTimeout(() => {
-        if (!handled) onSpeechEnd();
-      }, 1200);
-    } else {
-      finalizeFallback();
-    }
-    
-    setIsRecording(false);
-  };
-
-  const processAudioTranscription = async (audioBlob: Blob) => {
-    setVoiceStatus('transcribing');
-    
-    const reader = new FileReader();
-    reader.readAsDataURL(audioBlob);
-    reader.onloadend = async () => {
-      const base64Url = reader.result as string;
-
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 35000);
-
-        const response = await fetch("/api/voice/transcribe", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            audioDataUrl: base64Url,
-            mimeType: audioBlob.type,
-            voiceMode: voiceMode
-          }),
-          signal: controller.signal
-        });
-
-        clearTimeout(timeoutId);
-
-        let result;
-        const textRes = await response.text();
-        try {
-          result = JSON.parse(textRes);
-        } catch (e) {
-          throw new Error(textRes || "Failed to parse transcription response");
-        }
-
-        if (result.ok && result.data) {
-          const { transcript, emptySpeechDetected } = result.data;
-
-          if (emptySpeechDetected) {
-            if (draftVoiceNotes) {
-              setVoiceStatus('success');
-              setVoiceNotes(draftVoiceNotes);
-              setVoiceCapturedMode(voiceMode);
-              triggerToast("Voice note transcribed via draft fallback.", "tally");
-            } else {
-              setVoiceStatus('empty');
-              setVoiceNotes("");
-              setVoiceCapturedMode(null);
-              triggerToast("No clear speech detected. Type manually or retry.", "breach");
-            }
-          } else {
-            setVoiceStatus('success');
-            setVoiceNotes(transcript);
-            setVoiceCapturedMode(voiceMode);
-            triggerToast("Voice note successfully transcribed as evidence.", "tally");
-          }
-        } else {
-          setVoiceStatus('error');
-          setVoiceNotes(draftVoiceNotes);
-          setVoiceCapturedMode(draftVoiceNotes ? voiceMode : null);
-          if (draftVoiceNotes) {
-            triggerToast("Review the transcript before filing.", "tally");
-          } else {
-            if (response.status === 503 || result.error?.includes("not configured")) {
-              triggerToast("Voice AI is not configured. Type your note manually and continue.", "breach");
-            } else {
-              triggerToast("Voice transcription is unavailable right now. Type your note manually and continue.", "breach");
-            }
-          }
-        }
-      } catch (err: any) {
-        console.error("Transcription API failed:", err);
-        setVoiceStatus('error');
-        setVoiceNotes(draftVoiceNotes);
-        setVoiceCapturedMode(draftVoiceNotes ? voiceMode : null);
-        if (draftVoiceNotes) {
-          triggerToast("Review the transcript before filing.", "tally");
-        } else {
-          triggerToast("Voice transcription is unavailable right now. Type your note manually and continue.", "breach");
-        }
-      }
-    };
-  };
-
-  const handleToggleVoiceRecord = () => {
-    if (voiceStatus !== 'recording') {
-      startRecording();
-    } else {
-      stopRecording();
-    }
-  };
-
-  useEffect(() => {
-    return () => {
-      if (recordingTimerRef.current) {
-        clearTimeout(recordingTimerRef.current);
-      }
-    };
-  }, []);
 
   useEffect(() => {
     let watchId: number;
@@ -960,7 +648,6 @@ export default function CivicProofApp() {
     
     const targetPhoto = customPhoto;
     const targetNotes = userNotes;
-    const targetVoice = voiceNotes || "";
 
     const isTempLocationName = locationName === "Detecting location..." || locationName === "Detecting address...";
     
@@ -1001,11 +688,9 @@ export default function CivicProofApp() {
         headers,
         body: JSON.stringify({
           photoUrl: targetPhoto,
-          voiceTranscript: targetVoice,
           userNotes: targetNotes,
           gps: gpsData,
           isVulnerable: isVulnerableArea,
-          voiceMode: voiceCapturedMode || undefined,
           manualCategory: manualCategory === 'auto-detect' ? undefined : manualCategory,
           locationShortLabel,
           formattedAddress,
@@ -1159,9 +844,6 @@ export default function CivicProofApp() {
   const resetCaptureFlow = () => {
     setCaptureStep(1);
     setCustomPhoto(null);
-    setVoiceNotes("");
-    setVoiceStatus("default");
-    setVoiceCapturedMode(null);
     setUserNotes("");
     setIsVulnerableArea(false);
     setAnalysisResult(null);
@@ -1700,7 +1382,7 @@ export default function CivicProofApp() {
             {runtimeInfo && (
               <div 
                 className="inline-flex items-center gap-1.5 px-2 py-1 bg-tally/[0.08] border border-tally/30 rounded-sm mt-2 stamp-shadow cursor-default"
-                title={`${runtimeInfo.provider}\nText: ${runtimeInfo.textModel}\nVision: ${runtimeInfo.visionModel}\nVoice: ${runtimeInfo.voiceModel}`}
+                title={`${runtimeInfo.provider}\nText: ${runtimeInfo.textModel}\nVision: ${runtimeInfo.visionModel}`}
               >
                 <span className="relative flex h-1.5 w-1.5 shrink-0">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tally opacity-75"></span>
@@ -2738,18 +2420,7 @@ export default function CivicProofApp() {
                 <Camera className="w-6 h-6 text-paper" />
               </div>
 
-              {/* Desktop inline accessories (≥ 768px only) */}
-              <div className="hidden md:flex items-center gap-4 text-paper font-sans text-xs shrink-0 pointer-events-none">
-                <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-paper/10 border border-paper/20 rounded-sm">
-                  <Mic className="w-3.5 h-3.5 animate-pulse text-paper" />
-                  <span className="font-mono font-bold tracking-wider text-[11px]">VOICE CHIME ENABLED</span>
-                </div>
-                <div className="flex items-center gap-1 bg-paper/20 px-2 py-1 rounded-sm text-[10px] font-mono border border-paper/30 font-bold">
-                  <span>हिं</span>
-                  <span>·</span>
-                  <span className="underline">EN</span>
-                </div>
-              </div>
+
             </button>
 
             {/* Row 2: CASES ON YOUR BLOCK + NEIGHBORHOOD LOAD */}
@@ -2773,7 +2444,7 @@ export default function CivicProofApp() {
                     <div className="col-span-full space-y-6 w-full">
                       <EmptyStatePanel
                         title="Your block is quiet — for now."
-                        message="No civic cases have been filed here yet. Start the first CivicProof record with a photo, voice note, or landmark."
+                        message="No civic cases have been filed here yet. Start the first CivicProof record with a photo or landmark."
                         actionText="File the first case"
                         onAction={() => {
                           setActiveTab('report');
@@ -2789,7 +2460,7 @@ export default function CivicProofApp() {
                             <Sparkles className="w-4 h-4 text-stamp" /> How CivicProof Works
                           </h4>
                           <ol className="space-y-2 text-xs font-sans text-chalk divide-y divide-ink/10">
-                            <li className="pt-1.5 first:pt-0"><span className="font-bold text-ink">1. Capture Proof:</span> Upload photo evidence or record a voice note.</li>
+                            <li className="pt-1.5 first:pt-0"><span className="font-bold text-ink">1. Capture Proof:</span> Upload photo evidence.</li>
                             <li className="pt-1.5"><span className="font-bold text-ink">2. Confirm Location:</span> Confirm GPS location of the hazard.</li>
                             <li className="pt-1.5"><span className="font-bold text-ink">3. Structuring Case:</span> AI parses and formats the evidence.</li>
                             <li className="pt-1.5"><span className="font-bold text-ink">4. Corroborate:</span> Duplicate reports merge to strengthen evidence.</li>
@@ -2805,7 +2476,7 @@ export default function CivicProofApp() {
                           <ul className="space-y-2 text-xs font-sans text-chalk">
                             <li className="flex items-start gap-2">
                               <span className="border border-ink w-3.5 h-3.5 shrink-0 inline-flex items-center justify-center text-[9px] font-bold"></span>
-                              <span>Add real photo or voice testimony</span>
+                              <span>Add real photo evidence and notes</span>
                             </li>
                             <li className="flex items-start gap-2">
                               <span className="border border-ink w-3.5 h-3.5 shrink-0 inline-flex items-center justify-center text-[9px] font-bold"></span>
@@ -3284,7 +2955,7 @@ export default function CivicProofApp() {
                       </div>
 
                       <div className="text-center font-sans text-xs text-paper/80 bg-paper/10 p-2 backdrop-blur-sm border border-paper/10">
-                        &ldquo;Show us what you are seeing on the street. Upload photo evidence.&rdquo;
+                        &ldquo;Capture a clear photo of the issue to verify it on the ledger.&rdquo;
                       </div>
                     </div>
                   )}
@@ -3296,7 +2967,7 @@ export default function CivicProofApp() {
                     <span className="font-sans text-xs font-bold uppercase text-chalk tracking-wider block">
                       Know the issue type?
                     </span>
-                    <span className="text-[10px] text-chalk italic">Optional — CivicProof can detect this from your photo, voice, and note.</span>
+                    <span className="text-[10px] text-chalk italic">Optional — CivicProof can detect this from your photo and note.</span>
                   </div>
                   
                   <div className="flex flex-wrap gap-1.5">
@@ -3330,102 +3001,9 @@ export default function CivicProofApp() {
                     <Camera className="w-4 h-4 text-stamp" /> Geotag Real Photo
                     <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
                   </label>
-
-                  <button 
-                    type="button"
-                    onClick={handleToggleVoiceRecord}
-                    disabled={voiceStatus === 'transcribing'}
-                    className={`flex-1 h-12 border border-ink font-sans text-xs font-bold active:translate-y-0.5 stamp-shadow flex items-center justify-center gap-1.5 ${
-                      voiceStatus === 'recording' 
-                        ? 'bg-breach text-paper' 
-                        : voiceStatus === 'transcribing'
-                        ? 'bg-tally/20 text-ink cursor-wait'
-                        : 'bg-paper text-ink hover:bg-ink/[0.04]'
-                    }`}
-                  >
-                    {voiceStatus === 'recording' ? (
-                      <div className="flex items-center justify-center gap-[2px] h-4 w-6 mx-1">
-                        {[0, 1, 2, 3, 4].map(i => {
-                          // Create a slight arc effect by dampening the outer bars
-                          const damp = 1 - Math.abs(i - 2) * 0.2;
-                          // Use voiceVolume (0-1) to scale height, keeping a minimum height
-                          const h = Math.max(10, voiceVolume * 100 * damp);
-                          return (
-                            <div 
-                              key={i} 
-                              className="w-[3px] bg-paper transition-all duration-75"
-                              style={{ height: `${h}%` }}
-                            />
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <Mic className="w-4 h-4 text-stamp" />
-                    )}
-                    {
-                      voiceStatus === 'recording' ? "Recording… tap to stop" :
-                      voiceStatus === 'transcribing' ? "Transcribing voice note…" :
-                      voiceStatus === 'success' ? "Voice note transcribed. Tap to re-record." :
-                      voiceStatus === 'empty' ? "Retry voice note" :
-                      voiceStatus === 'error' ? "Retry transcription" :
-                      "Vocal Testimony"
-                    }
-                  </button>
                 </div>
 
-                {/* Display Transcription if recorded */}
-                {(voiceNotes || draftVoiceNotes) && (
-                  <div className="border border-ink p-3 bg-tally/5 font-sans text-xs space-y-1">
-                    <div className="flex justify-between items-center text-[10px] text-chalk font-semibold uppercase">
-                      <span>Vocal Testimony Transcript</span>
-                      <span className={voiceStatus === 'success' ? "text-tally font-bold" : "text-chalk font-bold"}>
-                        {voiceStatus === 'success' ? 'Transcribed' : voiceStatus === 'error' ? 'Draft - Review Required' : 'Drafting...'}
-                      </span>
-                    </div>
-                    <textarea
-                      value={voiceNotes || draftVoiceNotes}
-                      onChange={(e) => setVoiceNotes(e.target.value)}
-                      readOnly={voiceStatus === 'recording' || voiceStatus === 'transcribing'}
-                      rows={3}
-                      className="w-full bg-transparent font-sans text-xs italic text-ink/90 outline-none border border-ink/20 p-1 resize-y focus:border-ink/50"
-                    />
-                    <div className="text-[9px] text-chalk pt-1">You can edit the transcript before filing.</div>
-                  </div>
-                )}
 
-                {/* Language Switch Toggle (हिं · EN · MIX) (Section 7.2) */}
-                <div className="flex justify-between items-center bg-chalk/5 border border-ink/15 p-2 rounded-sm text-xs font-mono">
-                  <span className="text-chalk text-[10px] uppercase font-semibold">Voice Input dialect</span>
-                  <div className="flex gap-1">
-                    <button
-                      type="button"
-                      onClick={() => { setVoiceMode('hi-IN'); triggerSound('tick'); }}
-                      className={`px-1.5 py-0.5 font-bold border select-none text-xs ${
-                        voiceMode === 'hi-IN' ? 'bg-stamp text-paper border-ink' : 'bg-paper text-ink border-ink/30 text-chalk hover:bg-ink/[0.04]'
-                      }`}
-                    >
-                      हिं
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setVoiceMode('en-IN'); triggerSound('tick'); }}
-                      className={`px-1.5 py-0.5 font-bold border select-none text-xs ${
-                        voiceMode === 'en-IN' ? 'bg-stamp text-paper border-ink' : 'bg-paper text-ink border-ink/30 text-chalk hover:bg-ink/[0.04]'
-                      }`}
-                    >
-                      EN
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setVoiceMode('mixed-IN'); triggerSound('tick'); }}
-                      className={`px-1.5 py-0.5 font-bold border select-none text-xs ${
-                        voiceMode === 'mixed-IN' ? 'bg-stamp text-paper border-ink' : 'bg-paper text-ink border-ink/30 text-chalk hover:bg-ink/[0.04]'
-                      }`}
-                    >
-                      MIX
-                    </button>
-                  </div>
-                </div>
 
                 {/* Optional description input */}
                 <div className="space-y-1">

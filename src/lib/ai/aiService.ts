@@ -1,5 +1,5 @@
 // src/lib/ai/aiService.ts
-// Direct Gemini API invocation handlers
+// Direct BTL API invocation handlers
 
 import fs from "fs";
 import path from "path";
@@ -27,7 +27,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
   ]);
 }
 
-// Helper to load image inline data for Gemini supporting data URLs, remote URLs, and local files
+// Helper to load image inline data for BTL supporting data URLs, remote URLs, and local files
 async function getImagePart(url: string): Promise<{ mimeType: string; data: string } | null> {
   if (!url) return null;
 
@@ -86,7 +86,7 @@ async function getImagePart(url: string): Promise<{ mimeType: string; data: stri
   return null;
 }
 
-export async function analyzeReportWithGemini(report: ReportIntake): Promise<AIAnalysisResult> {
+export async function analyzeReportWithBTL(report: ReportIntake): Promise<AIAnalysisResult> {
   const ai = getBTLClient();
   const contextText = `Citizen note: "${report.citizenNote || 'None'}". Reported location: "${report.locationName}". Category choice: "${report.selectedCategory || 'None'}".`;
   
@@ -150,7 +150,7 @@ export async function analyzeReportWithGemini(report: ReportIntake): Promise<AIA
   };
 }
 
-export async function generateComplaintWithGemini(
+export async function generateComplaintWithBTL(
   caseId: string,
   title: string,
   category: string,
@@ -211,7 +211,7 @@ export async function generateComplaintWithGemini(
   };
 }
 
-export async function generateEscalationWithGemini(
+export async function generateEscalationWithBTL(
   caseId: string,
   title: string,
   category: string,
@@ -271,7 +271,7 @@ export async function generateEscalationWithGemini(
   };
 }
 
-export async function verifyResolutionWithGemini(
+export async function verifyResolutionWithBTL(
   originalDesc: string,
   resolutionPhotoUrl: string,
   citizenVerificationNote: string

@@ -16,7 +16,6 @@ export async function GET() {
     const aiConfigured = shouldUseAI();
     const textModel = getTextModelName();
     const visionModel = getMultimodalModelName();
-    const voiceModel = process.env.VOICE_MODEL || "gemini (audio)";
 
     return NextResponse.json({
       ok: true,
@@ -26,7 +25,6 @@ export async function GET() {
         aiConfigured,
         textModel,
         visionModel,
-        voiceModel,
         timestamp: new Date().toISOString()
       }
     });

@@ -4,10 +4,10 @@
 import { ReportIntake, AIAnalysisResult, ComplaintPacket, EscalationPacket, ResolutionVerification } from "../civic/types";
 import { shouldUseAI, getMultimodalModelName, getTextModelName } from "./modelConfig";
 import {
-  analyzeReportWithGemini,
-  generateComplaintWithGemini,
-  generateEscalationWithGemini,
-  verifyResolutionWithGemini,
+  analyzeReportWithBTL,
+  generateComplaintWithBTL,
+  generateEscalationWithBTL,
+  verifyResolutionWithBTL,
 } from "./aiService";
 import {
   AIAnalysisResultSchema,
@@ -32,7 +32,7 @@ export async function analyzeReportSmart(report: ReportIntake): Promise<AdapterR
 
   let rawResult: any;
   try {
-    rawResult = await analyzeReportWithGemini(report);
+    rawResult = await analyzeReportWithBTL(report);
     const validation = AIAnalysisResultSchema.safeParse(rawResult);
     if (validation.success) {
       return {
@@ -66,7 +66,7 @@ export async function generateComplaintSmart(
 
   let rawResult: any;
   try {
-    rawResult = await generateComplaintWithGemini(caseId, title, category, department, gpsString, elapsedDays, analysisText);
+    rawResult = await generateComplaintWithBTL(caseId, title, category, department, gpsString, elapsedDays, analysisText);
     const validation = ComplaintPacketSchema.safeParse(rawResult);
     if (validation.success) {
       return {
@@ -101,7 +101,7 @@ export async function generateEscalationSmart(
 
   let rawResult: any;
   try {
-    rawResult = await generateEscalationWithGemini(caseId, title, category, department, gpsString, elapsedDays, analysisText, corroborationCount);
+    rawResult = await generateEscalationWithBTL(caseId, title, category, department, gpsString, elapsedDays, analysisText, corroborationCount);
     const validation = EscalationPacketSchema.safeParse(rawResult);
     if (validation.success) {
       return {
@@ -131,7 +131,7 @@ export async function verifyResolutionSmart(
 
   let rawResult: any;
   try {
-    rawResult = await verifyResolutionWithGemini(originalDesc, resolutionPhotoUrl, citizenVerificationNote);
+    rawResult = await verifyResolutionWithBTL(originalDesc, resolutionPhotoUrl, citizenVerificationNote);
     const validation = ResolutionVerificationSchema.safeParse(rawResult);
     if (validation.success) {
       return {
