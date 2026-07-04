@@ -2083,7 +2083,7 @@ export default function CivicProofApp() {
                       {(() => {
                         const authority = getAuthority(
                           selectedCase.category as CivicCategory,
-                          selectedCase.gps?.address || selectedCase.city || selectedCase.state || ""
+                          selectedCase.gps?.address || selectedCase.formattedAddress || selectedCase.city || selectedCase.state || ""
                         );
                         const emailSubject = `Civic Complaint: ${selectedCase.title} [${selectedCase.id}]`;
                         const emailBody = selectedCase.complaintPacket?.body || "";
@@ -2230,15 +2230,20 @@ export default function CivicProofApp() {
                     </p>
 
                     <div className="flex gap-2">
-                      <button 
-                        onClick={() => {
-                          setResolutionPhoto(selectedCase.photoUrl); // Simulate fixed photo matching
-                          triggerToast("Resolution photograph captured on-site.", "tally");
-                        }}
-                        className="flex-1 bg-paper text-ink border border-ink py-1.5 text-xs font-sans font-bold hover:bg-ink/[0.04] stamp-shadow active:translate-y-0.5 flex items-center justify-center gap-1"
-                      >
-                        <Camera className="w-4 h-4 text-stamp" /> Fast Snap Fix
-                      </button>
+                      <label className="flex-1 bg-paper text-ink border border-ink py-1.5 text-xs font-sans font-bold hover:bg-ink/[0.04] stamp-shadow active:translate-y-0.5 flex items-center justify-center gap-1 cursor-pointer text-center">
+                        <Camera className="w-4 h-4 text-stamp" /> Snap Fix (Camera)
+                        <input type="file" accept="image/*" capture="environment" onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                              setResolutionPhoto(event.target?.result as string);
+                              triggerToast("Resolution photograph captured on-site.", "tally");
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }} className="hidden" />
+                      </label>
                       
                       <label className="flex-1 bg-paper text-ink border border-ink py-1.5 text-xs font-sans font-bold hover:bg-ink/[0.04] stamp-shadow active:translate-y-0.5 flex items-center justify-center gap-1 cursor-pointer text-center">
                         <Globe className="w-4 h-4 text-tally" /> Upload Proof
