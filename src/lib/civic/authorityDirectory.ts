@@ -85,18 +85,53 @@ const CITIES: CityBlock[] = [
 
 /* ---------- LEVEL 2: state grievance portals ---------- */
 const STATES: { match: string[]; authority: Omit<Authority, "level"> }[] = [
-  { match: ["uttar pradesh", "lucknow", "kanpur", "noida", "ghaziabad", "varanasi", "agra", "prayagraj", "meerut"], authority: { departmentName: "UP Jansunwai (IGRS) – helpline 1076", portalUrl: "https://jansunwai.up.nic.in", requiresLogin: true } },
-  { match: ["maharashtra", "nagpur", "nashik", "aurangabad", "thane"], authority: { departmentName: "Aaple Sarkar (Maharashtra)", portalUrl: "https://grievances.maharashtra.gov.in/en", requiresLogin: true } },
-  { match: ["rajasthan", "jaipur", "jodhpur", "udaipur", "kota", "ajmer", "bikaner"], authority: { departmentName: "Rajasthan Sampark – helpline 181", portalUrl: "https://sampark.rajasthan.gov.in", requiresLogin: true } },
-  { match: ["madhya pradesh", "bhopal", "indore", "gwalior", "jabalpur", "ujjain"], authority: { departmentName: "MP CM Helpline – 181", portalUrl: "https://cmhelpline.mp.gov.in", requiresLogin: true } },
-  { match: ["bihar", "patna", "gaya", "bhagalpur", "muzaffarpur"], authority: { departmentName: "Bihar Lok Shikayat", email: "info-lokshikayat-bih@gov.in", portalUrl: "https://lokshikayat.bihar.gov.in", requiresLogin: true } },
-  { match: ["gujarat", "surat", "vadodara", "rajkot", "gandhinagar"], authority: { departmentName: "SWAGAT (Gujarat)", portalUrl: "https://swagat.gujarat.gov.in", requiresLogin: true } },
-  { match: ["tamil nadu", "coimbatore", "madurai", "trichy", "salem"], authority: { departmentName: "TN CM Helpline – 1100", email: "cmhelpline@tn.gov.in", portalUrl: "https://cmhelpline.tnega.org" } },
-  { match: ["haryana", "gurugram", "gurgaon", "faridabad", "panipat", "karnal"], authority: { departmentName: "Haryana CM Window", portalUrl: "https://cmharyanacell.nic.in", requiresLogin: true } },
-  { match: ["telangana", "warangal", "nizamabad"], authority: { departmentName: "Telangana Prajavani", portalUrl: "https://prajavani.telangana.gov.in", requiresLogin: true } },
-  { match: ["karnataka", "mysuru", "mysore", "mangaluru", "hubli"], authority: { departmentName: "Karnataka Janaspandana / IPGRS", portalUrl: "https://ipgrs.karnataka.gov.in", requiresLogin: true } },
-  { match: ["west bengal", "siliguri", "durgapur", "asansol"], authority: { departmentName: "West Bengal CM Grievance Cell", portalUrl: "https://cmo.wb.gov.in", requiresLogin: true } },
+  // ----- North -----
+  { match: ["uttar pradesh","lucknow","kanpur","noida","ghaziabad","varanasi","banaras","agra","prayagraj","allahabad","meerut","gorakhpur","aligarh","bareilly","moradabad","saharanpur","jhansi","mathura","ayodhya"], authority: { departmentName: "UP Jansunwai (IGRS) – helpline 1076", portalUrl: "https://jansunwai.up.nic.in", requiresLogin: true } },
+  { match: ["uttarakhand","dehradun","haridwar","roorkee","haldwani","nainital","rishikesh","rudrapur","kashipur","almora"], authority: { departmentName: "Uttarakhand CM Helpline 1905", portalUrl: "https://cmhelpline.uk.gov.in/", requiresLogin: true } },
+  { match: ["himachal","shimla","manali","dharamshala","solan","mandi","kullu","bilaspur","hamirpur","kangra"], authority: { departmentName: "HP Mukhyamantri Seva Sankalp 1100", portalUrl: "https://cmsankalp.hp.gov.in/", requiresLogin: true } },
+  { match: ["punjab","ludhiana","amritsar","jalandhar","patiala","bathinda","mohali","pathankot","hoshiarpur","moga"], authority: { departmentName: "Connect Punjab (PGRS) – helpline 1100", portalUrl: "https://connect.punjab.gov.in", requiresLogin: true } },
+  { match: ["haryana","gurugram","gurgaon","faridabad","panipat","karnal","hisar","rohtak","ambala","yamunanagar","sonipat","panchkula"], authority: { departmentName: "Haryana CM Window", portalUrl: "https://cmharyanacell.nic.in", requiresLogin: true } },
+  { match: ["jammu","kashmir","srinagar","anantnag","baramulla","udhampur","kupwara"], authority: { departmentName: "JK Samadhan – helpline 1905", portalUrl: "https://samadhan.jk.gov.in/", requiresLogin: true } },
+  { match: ["ladakh","leh","kargil"], authority: { departmentName: "Ladakh Grievances (CPGRAMS)", portalUrl: "https://pgportal.gov.in/", requiresLogin: true } },
+  { match: ["chandigarh"], authority: { departmentName: "Chandigarh LokSamadhan", portalUrl: "https://loksamadhan.chd.gov.in/mainhome.aspx", requiresLogin: true } },
   { match: ["delhi"], authority: { departmentName: "Delhi CM Jan Sunwai", portalUrl: "https://cmjansunwai.delhi.gov.in", requiresLogin: true } },
+
+  // ----- West -----
+  { match: ["maharashtra","nagpur","nashik","aurangabad","thane","solapur","kolhapur","amravati","sangli","nanded","navi mumbai"], authority: { departmentName: "Aaple Sarkar (Maharashtra)", portalUrl: "https://grievances.maharashtra.gov.in/en", requiresLogin: true } },
+  { match: ["gujarat","surat","vadodara","baroda","rajkot","gandhinagar","bhavnagar","jamnagar","junagadh","anand"], authority: { departmentName: "SWAGAT (Gujarat)", portalUrl: "https://swagat.gujarat.gov.in", requiresLogin: true } },
+  { match: ["rajasthan","jaipur","jodhpur","udaipur","kota","ajmer","bikaner","bhilwara","alwar","sikar"], authority: { departmentName: "Rajasthan Sampark – helpline 181", portalUrl: "https://sampark.rajasthan.gov.in", requiresLogin: true } },
+  { match: ["goa","panaji","panjim","margao","vasco","mapusa","ponda"], authority: { departmentName: "Goa CM Helpline / DPG 1905", portalUrl: "https://cmhelpline.dpg.goa.gov.in/", requiresLogin: true } },
+  { match: ["dadra","nagar haveli","daman","silvassa"], authority: { departmentName: "DNH & DD Grievances (CPGRAMS)", portalUrl: "https://pgportal.gov.in/", requiresLogin: true } },
+
+  // ----- Central -----
+  { match: ["madhya pradesh","bhopal","indore","gwalior","jabalpur","ujjain","sagar","satna","rewa","dewas"], authority: { departmentName: "MP CM Helpline 181", portalUrl: "https://cmhelpline.mp.gov.in", requiresLogin: true } },
+  { match: ["chhattisgarh","raipur","bhilai","bilaspur","korba","durg","rajnandgaon","jagdalpur"], authority: { departmentName: "Chhattisgarh NIDAAN 1100", portalUrl: "https://nidaan.cg.gov.in/", requiresLogin: true } },
+
+  // ----- East -----
+  { match: ["bihar","patna","gaya","bhagalpur","muzaffarpur","darbhanga","purnia","arrah","begusarai"], authority: { departmentName: "Bihar Lok Shikayat – helpline 18003456284", email: "info-lokshikayat-bih@gov.in", portalUrl: "https://lokshikayat.bihar.gov.in", requiresLogin: true } },
+  { match: ["jharkhand","ranchi","jamshedpur","dhanbad","bokaro","deoghar","hazaribagh"], authority: { departmentName: "Jharkhand CM Grievance", portalUrl: "https://cm.jharkhand.gov.in/write-to-cm" } },
+  { match: ["odisha","orissa","bhubaneswar","cuttack","rourkela","berhampur","sambalpur","puri"], authority: { departmentName: "Odisha Jana Sunani", portalUrl: "https://janasunani.odisha.gov.in/" } },
+  { match: ["west bengal","kolkata","howrah","asansol","siliguri","durgapur","bardhaman"], authority: { departmentName: "West Bengal Grievance (CPGRAMS)", portalUrl: "https://pgportal.gov.in/", requiresLogin: true } },
+
+  // ----- South -----
+  { match: ["tamil nadu","chennai","coimbatore","madurai","tiruchirappalli","trichy","salem","tirunelveli","vellore","erode"], authority: { departmentName: "TN CM Helpline 1100", email: "cmhelpline@tn.gov.in", portalUrl: "https://cmhelpline.tnega.org" } },
+  { match: ["karnataka","bengaluru","bangalore","mysuru","mysore","mangaluru","hubli","belagavi","kalaburagi","davangere"], authority: { departmentName: "Karnataka Janaspandana / IPGRS", portalUrl: "https://ipgrs.karnataka.gov.in", requiresLogin: true } },
+  { match: ["telangana","hyderabad","warangal","nizamabad","karimnagar","khammam"], authority: { departmentName: "Telangana Prajavani", portalUrl: "https://prajavani.telangana.gov.in", requiresLogin: true } },
+  { match: ["andhra","visakhapatnam","vizag","vijayawada","guntur","nellore","tirupati","kurnool","rajahmundry","kadapa"], authority: { departmentName: "AP PGRS (Spandana) – 1902", portalUrl: "https://pgrs.ap.gov.in/", requiresLogin: true } },
+  { match: ["kerala","thiruvananthapuram","trivandrum","kochi","cochin","kozhikode","calicut","thrissur","kollam","kannur"], authority: { departmentName: "Kerala CM Grievance – helpline 1076", portalUrl: "https://cmo.kerala.gov.in/", requiresLogin: true } },
+  { match: ["puducherry","pondicherry","pondy","karaikal","yanam"], authority: { departmentName: "Puducherry LG Petition Monitoring", portalUrl: "https://lgredressal.py.gov.in/pgrs/" } },
+  { match: ["andaman","nicobar","port blair"], authority: { departmentName: "A&N Grievances (CPGRAMS)", portalUrl: "https://pgportal.gov.in/", requiresLogin: true } },
+  { match: ["lakshadweep","kavaratti"], authority: { departmentName: "Lakshadweep Grievances (CPGRAMS)", portalUrl: "https://pgportal.gov.in/", requiresLogin: true } },
+
+  // ----- Northeast -----
+  { match: ["assam","guwahati","dibrugarh","silchar","jorhat","tezpur","nagaon"], authority: { departmentName: "Assam CM Grievance (Write to CM)", portalUrl: "https://cm.assam.gov.in/write-to-cm" } },
+  { match: ["tripura","agartala","dharmanagar"], authority: { departmentName: "Tripura CPGRAMS – helpline 1905", portalUrl: "https://grievance.tripura.gov.in/", requiresLogin: true } },
+  { match: ["meghalaya","shillong","tura","jowai"], authority: { departmentName: "Meghalaya CM Connect – 1971", email: "cmconnect1971@outlook.com", portalUrl: "https://meghalaya.gov.in/services/content/19327" } },
+  { match: ["mizoram","aizawl","lunglei"], authority: { departmentName: "Mizoram MIPUI AW (MPGRAMS)", portalUrl: "https://mipuiaw.mizoram.gov.in/", requiresLogin: true } },
+  { match: ["sikkim","gangtok","namchi","gyalshing"], authority: { departmentName: "Sikkim Grievance (SSO login)", portalUrl: "https://grievancerdd.sikkim.gov.in/", requiresLogin: true } },
+  { match: ["arunachal","itanagar","naharlagun","tawang"], authority: { departmentName: "Arunachal Grievances (CPGRAMS)", portalUrl: "https://pgportal.gov.in/", requiresLogin: true } },
+  { match: ["manipur","imphal","thoubal","churachandpur"], authority: { departmentName: "Manipur Grievances (CPGRAMS)", portalUrl: "https://pgportal.gov.in/", requiresLogin: true } },
+  { match: ["nagaland","kohima","dimapur","mokokchung"], authority: { departmentName: "Nagaland Grievances (CPGRAMS)", portalUrl: "https://pgportal.gov.in/", requiresLogin: true } },
 ]
 
 /* ---------- RESOLVER: city -> state -> national ---------- */
