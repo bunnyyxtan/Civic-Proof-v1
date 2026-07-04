@@ -1129,6 +1129,7 @@ export default function CivicProofApp() {
     setIsSubmittingStrengthen(true);
     try {
       const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (idToken) headers["Authorization"] = `Bearer ${idToken}`;
       
       const res = await fetch(`/api/cases/${caseId}/evidence`, {
         method: "POST",
@@ -1141,7 +1142,7 @@ export default function CivicProofApp() {
       });
       const data = await res.json();
       if (data.ok && data.data.case) {
-        const updated = data.data.case;
+        const updated = mapIssueToCase(data.data.case);
         setCases(prev => prev.map(c => c.id === caseId ? updated : c));
         if (selectedCase && selectedCase.id === caseId) setSelectedCase(updated);
         triggerToast("Photo proof added to this civic case.", "tally");
@@ -1164,6 +1165,7 @@ export default function CivicProofApp() {
     setIsSubmittingStrengthen(true);
     try {
       const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (idToken) headers["Authorization"] = `Bearer ${idToken}`;
       
       const res = await fetch(`/api/cases/${caseId}/impact`, {
         method: "POST",
@@ -1175,7 +1177,7 @@ export default function CivicProofApp() {
       });
       const data = await res.json();
       if (data.ok && data.data.case) {
-        const updated = data.data.case;
+        const updated = mapIssueToCase(data.data.case);
         setCases(prev => prev.map(c => c.id === caseId ? updated : c));
         if (selectedCase && selectedCase.id === caseId) setSelectedCase(updated);
         triggerToast("Impact note added.", "tally");
@@ -1198,6 +1200,7 @@ export default function CivicProofApp() {
     setIsSubmittingStrengthen(true);
     try {
       const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (idToken) headers["Authorization"] = `Bearer ${idToken}`;
       
       const res = await fetch(`/api/cases/${caseId}/confirm-active`, {
         method: "POST",
@@ -1208,7 +1211,7 @@ export default function CivicProofApp() {
       });
       const data = await res.json();
       if (data.ok && data.data.case) {
-        const updated = data.data.case;
+        const updated = mapIssueToCase(data.data.case);
         setCases(prev => prev.map(c => c.id === caseId ? updated : c));
         if (selectedCase && selectedCase.id === caseId) setSelectedCase(updated);
         triggerToast("Case confirmed active today.", "tally");

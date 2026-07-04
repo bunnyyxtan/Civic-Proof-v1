@@ -66,7 +66,7 @@ export async function POST(
   } catch (error: any) {
     console.error("Error adding active confirmation:", error);
     return NextResponse.json(
-      { ok: false, error: { code: "SERVER_ERROR", message: error.message } },
+      { ok: false, error: { code: "SERVER_ERROR", message: error?.message || "Server error" } },
       { status: 500 }
     );
   }

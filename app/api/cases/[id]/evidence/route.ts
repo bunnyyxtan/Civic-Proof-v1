@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getCaseRepository } from "@/src/lib/repositories/repositoryFactory";
 import { verifyCitizenAuth } from "@/src/lib/auth/verifyAuth";
+import { saveImageLocally } from "@/src/lib/civic/imageStorage";
 
 const EvidenceSchema = z.object({
   imageUrl: z.string().url().optional(),
@@ -41,6 +42,11 @@ export async function POST(
       actor: "citizen" as const
     };
 
+    let finalImageUrl = parsed.imageUrl;
+    if (finalImageUrl?.startsWith("data:")) {
+      finalImageUrl = await saveImageLocally(finalImageUrl);
+    }
+
     let updatedCase = currentCase;
 
     if (uid === currentCase.createdByUid) {
@@ -52,7 +58,7 @@ export async function POST(
         citizenNote: parsed.caption || "Verified same visual coordinates, still active.",
         contributorName: "Citizen Reporter",
         contributorUid: uid,
-        imageDataUrl: parsed.imageUrl
+        imageDataUrl: finalImageUrl
       };
 
       await repo.appendTimelineEvent(id, timelineEvent);
@@ -69,7 +75,7 @@ export async function POST(
   } catch (error: any) {
     console.error("Error adding evidence:", error);
     return NextResponse.json(
-      { ok: false, error: { code: "SERVER_ERROR", message: error.message } },
+      { ok: false, error: { code: "SERVER_ERROR", message: error?.message || "Server error" } },
       { status: 500 }
     );
   }

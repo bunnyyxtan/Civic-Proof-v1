@@ -67,6 +67,12 @@ export interface HarmScoreResult {
   score: number; // 0 to 100
   band: 'low' | 'medium' | 'high' | 'critical';
   reasons: string[];
+  breakdown?: {
+    safetyHazard: number;
+    publicImpact: number;
+    vulnerabilityFactor: number;
+    durationFactor: number;
+  };
 }
 
 export interface DepartmentRoute {
@@ -147,6 +153,12 @@ export interface CivicIssue {
   status: IssueStatus;
   severity: Severity;
   harmScore: number;
+  harmScoreBreakdown?: {
+    safetyHazard: number;
+    publicImpact: number;
+    vulnerabilityFactor: number;
+    durationFactor: number;
+  };
   locationName: string;
   latitude: number;
   longitude: number;
